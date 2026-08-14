@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable no-useless-assignment */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CATEGORIES, REGIONS } from '../data/categories';
 
 export default function AddListingPage({
@@ -30,23 +29,31 @@ export default function AddListingPage({
   const [sellerPhone, setSellerPhone] = useState(currentUser?.phone || '+994 50 123 45 67');
   const [sellerWhatsapp, setSellerWhatsapp] = useState('994501234567');
 
-  // Adjust suggested units based on category and type
-  useEffect(() => {
-    if (type === 'rent') {
-      if (category === 'Torpaq, Bağ və Əkin Sahələri') {
-        setUnit('AZN / hektar / il');
-      } else {
-        setUnit('AZN / gün');
-      }
-    } else {
-      if (category === 'Gübrələr') setUnit('AZN / kisə');
-      else if (category === 'Ağac və Bitkilər') setUnit('AZN / ədəd');
-      else if (category === 'Toxumlar və Heyvan Yemləri') setUnit('AZN / kq');
-      else if (category === 'Aqrar və Heyvan Dərmanları') setUnit('AZN / flakon');
-      else if (category === 'Kənd Təsərrüfatı Texnikaları' || category === 'Torpaq, Bağ və Əkin Sahələri') setUnit('AZN');
-      else setUnit('AZN / dəst');
+  // Helper to get suggested unit without useEffect
+  const getSuggestedUnit = (selectedType, selectedCategory) => {
+    if (selectedType === 'rent') {
+      return selectedCategory === 'Torpaq, Bağ və Əkin Sahələri' ? 'AZN / hektar / il' : 'AZN / gün';
     }
-  }, [type, category]);
+    switch (selectedCategory) {
+      case 'Gübrələr': return 'AZN / kisə';
+      case 'Ağac və Bitkilər': return 'AZN / ədəd';
+      case 'Toxumlar və Heyvan Yemləri': return 'AZN / kq';
+      case 'Aqrar və Heyvan Dərmanları': return 'AZN / flakon';
+      case 'Kənd Təsərrüfatı Texnikaları':
+      case 'Torpaq, Bağ və Əkin Sahələri': return 'AZN';
+      default: return 'AZN / dəst';
+    }
+  };
+
+  const handleTypeSelect = (newType) => {
+    setType(newType);
+    setUnit(getSuggestedUnit(newType, category));
+  };
+
+  const handleCategorySelect = (newCategory) => {
+    setCategory(newCategory);
+    setUnit(getSuggestedUnit(type, newCategory));
+  };
 
   // Check login requirement
   if (!currentUser) {
@@ -185,7 +192,7 @@ export default function AddListingPage({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div
-              onClick={() => setType('sale')}
+              onClick={() => handleTypeSelect('sale')}
               className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                 type === 'sale' ? 'border-emerald-600 bg-emerald-50/70 shadow-xs' : 'border-gray-200 hover:border-emerald-200'
               }`}
@@ -198,7 +205,7 @@ export default function AddListingPage({
             </div>
 
             <div
-              onClick={() => setType('rent')}
+              onClick={() => handleTypeSelect('rent')}
               className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                 type === 'rent' ? 'border-blue-600 bg-blue-50/70 shadow-xs' : 'border-gray-200 hover:border-blue-200'
               }`}
@@ -226,7 +233,7 @@ export default function AddListingPage({
               <label className="block text-xs font-bold text-gray-700 mb-1.5">Kateqoriya *</label>
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => handleCategorySelect(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500"
               >
                 {CATEGORIES.filter(c => c.id !== 'all').map(c => (
