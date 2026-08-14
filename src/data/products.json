@@ -1,0 +1,341 @@
+[
+  {
+    "id": "prod-1",
+    "title": "NPK 15-15-15 Kompleks Mineral Gübrə (50 kq)",
+    "type": "sale",
+    "canAddToCart": true,
+    "requiresInquiry": false,
+    "category": "Gübrələr",
+    "price": 45,
+    "unit": "AZN / kisə",
+    "year": 2024,
+    "location": "Bərdə",
+    "inStock": true,
+    "rating": 4.8,
+    "image": "https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&w=800&q=80",
+    "description": "Bütün növ bitkilər və əkin sahələri üçün universal, tərkibində bərabər miqdarda Azot, Fosfor və Kalium olan yüksək keyfiyyətli dənəvər mineral gübrə.",
+    "features": {
+      "Tərkibi": "Azot (N) 15%, Fosfor (P2O5) 15%, Kalium (K2O) 15%",
+      "Çəkisi": "50 kq",
+      "İstehsalçı ölkə": "Rusiya",
+      "Saxlama müddəti": "3 il"
+    },
+    "seller": {
+      "name": "AqroServis QSC Bərdə filialı",
+      "phone": "+994 50 234 56 78",
+      "whatsapp": "994502345678",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-2",
+    "title": "Quba Qızıləhmədi və Simirenko Alma Tingləri",
+    "type": "sale",
+    "canAddToCart": true,
+    "requiresInquiry": false,
+    "category": "Ağac və Bitkilər",
+    "price": 8,
+    "unit": "AZN / ədəd",
+    "year": 2024,
+    "location": "Quba",
+    "inStock": true,
+    "rating": 4.9,
+    "image": "https://images.unsplash.com/photo-1590682680695-43b964a3ae17?auto=format&fit=crop&w=800&q=80",
+    "description": "2 illik calaq edilmiş yüksək məhsuldar alma tingləri. Şaxtaya və xəstəliklərə qarşı dözümlüdür, kök sistemi sağlamdır.",
+    "features": {
+      "Sort": "Qızıləhmədi / Simirenko",
+      "Yaş": "2 illik",
+      "Kök növü": "Açıq kök sistemi",
+      "Məhsuldarlıq dövrü": "3-cü ildən"
+    },
+    "seller": {
+      "name": "Quba Tingçilik Təsərrüfatı",
+      "phone": "+994 55 412 88 90",
+      "whatsapp": "994554128890",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-3",
+    "title": "Sertifikatlı 'Krasnodar 99' Yonca Toxumu",
+    "type": "sale",
+    "canAddToCart": true,
+    "requiresInquiry": false,
+    "category": "Toxumlar və Heyvan Yemləri",
+    "price": 12,
+    "unit": "AZN / kq",
+    "year": 2024,
+    "location": "Xaçmaz",
+    "inStock": true,
+    "rating": 4.7,
+    "image": "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80",
+    "description": "Cücərmə qabiliyyəti 96%-dən yüksək olan çoxillik yemlik yonca toxumu. İldə 4-5 biçin vermə potensialına malikdir.",
+    "features": {
+      "Təmizlik faizi": "99.2%",
+      "Cücərmə enerjisi": "94%",
+      "Biçin sayı": "İldə 4-5 dəfə",
+      "Qablaşdırma": "25 kq kisə"
+    },
+    "seller": {
+      "name": "Şimal Toxumçuluq Mərkəzi",
+      "phone": "+994 70 889 01 23",
+      "whatsapp": "994708890123",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-4",
+    "title": "Professional 500 Yumurtalıq Avtomat İnkubator",
+    "type": "sale",
+    "canAddToCart": true,
+    "requiresInquiry": false,
+    "category": "Ləvazimatlar və Alətlər",
+    "price": 580,
+    "unit": "AZN / dəst",
+    "year": 2023,
+    "location": "Gəncə",
+    "inStock": true,
+    "rating": 4.6,
+    "image": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80",
+    "description": "Quşçuluq təsərrüfatları üçün tam avtomatlaşdırılmış rütubət və istilik nəzarətinə malik sensorlu rəqəmsal inkubator.",
+    "features": {
+      "Tutum": "528 toyuq / 1300 bildirçin yumurtası",
+      "Güc": "160W, 220V",
+      "Avtomatik çevirmə": "Hər 90 dəqiqədən bir",
+      "Zəmanət": "1 il"
+    },
+    "seller": {
+      "name": "Aqroİnkubator MMC",
+      "phone": "+994 50 777 44 22",
+      "whatsapp": "994507774422",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-5",
+    "title": "Bio-Fungisid 'AqroStop' Bitki Mühafizə Dərmanı (1L)",
+    "type": "sale",
+    "canAddToCart": true,
+    "requiresInquiry": false,
+    "category": "Aqrar və Heyvan Dərmanları",
+    "price": 28,
+    "unit": "AZN / flakon",
+    "year": 2024,
+    "location": "Şəmkir",
+    "inStock": true,
+    "rating": 4.9,
+    "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80",
+    "description": "Pomidor, xiyar, üzüm və meyvə ağaclarında un şehinə, antraknoza və boz çürüməyə qarşı yüksək effektiv bioloji fungisid.",
+    "features": {
+      "Həcmi": "1 Litr",
+      "Tətbiq norması": "100L suya 200 ml",
+      "Gözləmə müddəti": "3 gün",
+      "Qalıq effekti": "Sıfır ekoloji toksiklik"
+    },
+    "seller": {
+      "name": "Bitki Sağlamlığı Mərkəzi",
+      "phone": "+994 51 654 32 10",
+      "whatsapp": "994516543210",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-6",
+    "title": "Belarus MTZ-82.1 Traktoru (Yeni)",
+    "type": "sale",
+    "canAddToCart": false,
+    "requiresInquiry": true,
+    "category": "Kənd Təsərrüfatı Texnikaları",
+    "price": 42000,
+    "unit": "AZN",
+    "year": 2024,
+    "location": "Ucar",
+    "inStock": true,
+    "rating": 5.0,
+    "image": "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=800&q=80",
+    "description": "Kənd təsərrüfatında şumlama, səpin və daşıma işləri üçün ən etibarlı 81 at gücünə malik universal təkərli traktor. Lizinq mümkündür.",
+    "features": {
+      "Mühərrik": "D-243 dizel, 81 a.g.",
+      "Təkər formulu": "4x4",
+      "Sürətlər qutusu": "Mexaniki 18/4",
+      "Kondisioner": "Mövcuddur"
+    },
+    "seller": {
+      "name": "Muğan AqroTexnika",
+      "phone": "+994 50 333 99 11",
+      "whatsapp": "994503339911",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-7",
+    "title": "Qəbələdə 4 Hektar Bar Verən Fındıq Bağı",
+    "type": "sale",
+    "canAddToCart": false,
+    "requiresInquiry": true,
+    "category": "Torpaq, Bağ və Əkin Sahələri",
+    "price": 185000,
+    "unit": "AZN",
+    "year": 2024,
+    "location": "Qəbələ (Vandam)",
+    "inStock": true,
+    "rating": 4.9,
+    "image": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+    "description": "Damcılı suvarma sistemi qurulmuş, illik 8-10 ton məhsul verən 8 illik 'Ata-baba' sortu fındıq bağı. Çıxarış (Kupça) var.",
+    "features": {
+      "Sahə": "40,000 m² (4 Hektar)",
+      "Sənəd": "Kənd təsərrüfatı təyinatlı Çıxarış",
+      "Su təminatı": "Daimi artezian quyusu + çay suyu",
+      "Yol": "Asfalt yoldan 300 metr məsafə"
+    },
+    "seller": {
+      "name": "Elmir Hüseynov (Mülkiyyətçi)",
+      "phone": "+994 55 901 22 33",
+      "whatsapp": "994559012233",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-8",
+    "title": "John Deere 6120M İcarəsi (Sürücü ilə birlikdə)",
+    "type": "rent",
+    "canAddToCart": false,
+    "requiresInquiry": false,
+    "isRental": true,
+    "category": "Kənd Təsərrüfatı Texnikaları",
+    "price": 180,
+    "unit": "AZN / gün",
+    "year": 2023,
+    "location": "Şəki",
+    "inStock": true,
+    "rating": 4.9,
+    "image": "https://images.unsplash.com/photo-1530267981375-f0de937f5f13?auto=format&fit=crop&w=800&q=80",
+    "description": "Ağır torpaq becərmə, dərin şum və diskalama işləri üçün peşəkar operator ilə birlikdə günlük və ya aylıq icarəyə verilir.",
+    "features": {
+      "Güc": "120 a.g. Turbo Dizel",
+      "Avadanlıq": "4 gövdəli dövriyyəli kotan daxildir",
+      "Operator": "Peşəkar sürücü daxildir",
+      "Minimum icarə": "3 gün"
+    },
+    "seller": {
+      "name": "Şəki AqroPark Servis",
+      "phone": "+994 50 444 12 34",
+      "whatsapp": "994504441234",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-9",
+    "title": "Saatlıda 15 Hektar Suvarılan Əkin Sahəsi İcarəsi",
+    "type": "rent",
+    "canAddToCart": false,
+    "requiresInquiry": false,
+    "isRental": true,
+    "category": "Torpaq, Bağ və Əkin Sahələri",
+    "price": 600,
+    "unit": "AZN / hektar (illik)",
+    "year": 2024,
+    "location": "Saatlı",
+    "inStock": true,
+    "rating": 4.8,
+    "image": "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?auto=format&fit=crop&w=800&q=80",
+    "description": "Pambıq, taxıl, yonca və bostan bitkiləri üçün tam yararlı, kanal suyu ilə təmin olunmuş münbit torpaq sahəsi.",
+    "features": {
+      "Sahə": "15 Hektar",
+      "Müqavilə": "1 ildən 5 ilə qədər rəsmi notarial müqavilə",
+      "Suvarma": "Kanal başı, elektrik xətti mövcuddur",
+      "Torpaq tipi": "Boz-çəmən, yüksək münbitlik"
+    },
+    "seller": {
+      "name": "Aran Aqro İnvest",
+      "phone": "+994 70 300 45 67",
+      "whatsapp": "994703004567",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-10",
+    "title": "CLAAS Tucano 430 Taxılyığan Kombayn İcarəsi",
+    "type": "rent",
+    "canAddToCart": false,
+    "requiresInquiry": false,
+    "isRental": true,
+    "category": "Kənd Təsərrüfatı Texnikaları",
+    "price": 350,
+    "unit": "AZN / gün",
+    "year": 2022,
+    "location": "İsmayıllı",
+    "inStock": true,
+    "rating": 5.0,
+    "image": "https://images.unsplash.com/photo-1595838729592-748956972049?auto=format&fit=crop&w=800&q=80",
+    "description": "Buğda, arpa və qarğıdalı biçini üçün itkisiz işləyən yüksək məhsuldar alman kombaynı. Sahəyə çatdırılma razılaşma ilə.",
+    "features": {
+      "Xeder eni": "6 metr",
+      "Bunker tutumu": "9000 litr",
+      "İtkisizlik səviyyəsi": "99.5%",
+      "Məhsuldarlıq": "Gündə 35-40 hektar"
+    },
+    "seller": {
+      "name": "AqroKombayn Xidməti",
+      "phone": "+994 55 600 77 88",
+      "whatsapp": "994556007788",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-11",
+    "title": "Arıçılıq üçün 10 Çərçivəli Şam Ağacından Pətəklər",
+    "type": "sale",
+    "canAddToCart": true,
+    "requiresInquiry": false,
+    "category": "Ləvazimatlar və Alətlər",
+    "price": 65,
+    "unit": "AZN / ədəd",
+    "year": 2024,
+    "location": "Zaqatala",
+    "inStock": true,
+    "rating": 4.8,
+    "image": "https://images.unsplash.com/photo-1473081556163-2a17de81fc97?auto=format&fit=crop&w=800&q=80",
+    "description": "Qurudulmuş şam ağacından hazırlanmış, standart Dadan-Blatt tipli 10 çərçivəli iki mərtəbəli arı pətəyi.",
+    "features": {
+      "Material": "Təbii Şam Ağacı (quruluq 12%)",
+      "Çərçivə sayı": "10 ədəd",
+      "Komplektasiya": "Altlıq, gövdə, mağaza, dam örtüyü",
+      "İzolyasiya": "Daxili istilik qoruyucu astar"
+    },
+    "seller": {
+      "name": "Zaqatala Arıçılar Birliyi",
+      "phone": "+994 50 611 22 44",
+      "whatsapp": "994506112244",
+      "verified": true
+    }
+  },
+  {
+    "id": "prod-12",
+    "title": "İtaliya İstehsalı Damcılı Suvarma Boruları (500m)",
+    "type": "sale",
+    "canAddToCart": true,
+    "requiresInquiry": false,
+    "category": "Ləvazimatlar və Alətlər",
+    "price": 140,
+    "unit": "AZN / rulon",
+    "year": 2024,
+    "location": "Bakı",
+    "inStock": true,
+    "rating": 4.7,
+    "image": "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?auto=format&fit=crop&w=800&q=80",
+    "description": "Bağ və istixanalar üçün təzyiq kompensasiyalı, 20 sm damcılayıcı aralıqlı yüksək dözümlü suvarma borusu.",
+    "features": {
+      "Uzunluq": "500 metr",
+      "Diametr": "16 mm",
+      "Damcılayıcı məsafəsi": "20 sm",
+      "Su sərfi": "Saatda 2.0 litr"
+    },
+    "seller": {
+      "name": "Modern İrriqasiya Sistemləri",
+      "phone": "+994 12 400 11 22",
+      "whatsapp": "994504001122",
+      "verified": true
+    }
+  }
+]
