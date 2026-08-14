@@ -1,46 +1,59 @@
-import { useState } from 'react';
-import productsData from './data/products.json';
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import ListingsPage from './pages/ListingsPage';
-import ProfilePage from './pages/ProfilePage';
-import { AboutPage, FaqPage, ContactPage, SocialFeedPage } from './pages/StaticPages';
-import ProductDetailModal from './components/ProductDetailModal';
 import CartDrawer from './components/CartDrawer';
 import RentalBookingModal from './components/RentalBookingModal';
 import SellerContactModal from './components/SellerContactModal';
 import AuthModal from './components/AuthModal';
 
-export default function App() {
-  // Navigation State: 'home', 'listings', 'profile', 'about', 'faq', 'contact', 'social'
-  const [activePage, setActivePage] = useState('home');
-  const [listingsFilters, setListingsFilters] = useState({});
+import HomePage from './pages/HomePage';
+import ListingsPage from './pages/ListingsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import AddListingPage from './pages/AddListingPage';
+import ProfilePage from './pages/ProfilePage';
+import { AboutPage, FaqPage, ContactPage, SocialFeedPage } from './pages/StaticPages';
 
-  // Auth State
+import { 
+  getStoredProducts, 
+  saveProduct, 
+  getStoredCurrentUser, 
+  logoutUser 
+} from './services/storageService';
+
+export default function App() {
+  const [activePage, setActivePage] = useState('home');
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  // Auth state
   const [currentUser, setCurrentUser] = useState(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
 
-  // E-commerce Cart State
+  // Cart & Bookings
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // Rental Bookings State
   const [rentalBookings, setRentalBookings] = useState([]);
-
-  // Wishlist State (Favorite Product IDs)
-  const [favorites, setFavorites] = useState(['prod-1', 'prod-8']);
-
-  // Orders History State
   const [orders, setOrders] = useState([]);
 
-  // Active Modals
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  // Favorites: Default liked state false (empty array)
+  const [favorites, setFavorites] = useState([]);
+
+  // Modals for rent & contact
   const [rentModalProduct, setRentModalProduct] = useState(null);
   const [contactModalProduct, setContactModalProduct] = useState(null);
 
-  // Notification Toast
+  // Notifications
   const [toastMessage, setToastMessage] = useState(null);
+  const [initialListingFilters, setInitialListingFilters] = useState({});
+
+  // Initialize storage
+  useEffect(() => {
+    setProducts(getStoredProducts());
+    setCurrentUser(getStoredCurrentUser());
+  }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -49,198 +62,262 @@ export default function App() {
     }, 3000);
   };
 
-  // Cart Actions
+  const handleRequireAuth = (customMsg) => {
+    setAuthMessage(customMsg || 'Davam etmək üçün zəhmət olmasa daxil olun');
+    setAuthModalOpen(true);
+  };
+
+  const handleAuthSuccess = (user, message) => {
+    setCurrentUser(user);
+    showToast(message || 'Giriş uğurla edildi!');
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    setActivePage('home');
+    showToast('Hesabdan çıxış edildi');
+  };
+
   const handleAddToCart = (product) => {
     if (!product.canAddToCart) {
-      showToast('Bu kateqoriyadakı məhsul səbətə əlavə edilmir!');
+      showToast('Bu məhsul səbətə əlavə edilmir!');
       return;
     }
 
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+    setCartItems(prev => {
+      const existing = prev.find(item => item.id === product.id);
       if (existing) {
-        return prev.map((item) =>
+        return prev.map(item =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
       return [...prev, { ...product, quantity: 1 }];
     });
 
-    showToast(`"${product.title.slice(0, 24)}..." səbətə əlavə olundu!`);
+    showToast(`"${product.title.slice(0, 20)}..." səbətə atıldı!`);
   };
 
-  const handleUpdateQuantity = (productId, quantity) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === productId ? { ...item, quantity } : item))
-    );
-  };
-
-  const handleRemoveFromCart = (productId) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== productId));
-  };
-
-  const handleCheckout = () => {
-    if (cartItems.length === 0) return;
-    const newOrder = {
-      orderId: Math.floor(10000 + Math.random() * 90000),
-      items: [...cartItems],
-      totalAmount: cartItems.reduce((s, i) => s + (i.price * i.quantity), 0) + 10,
-      date: new Date().toLocaleDateString('az-AZ')
-    };
-    setOrders((prev) => [newOrder, ...prev]);
-    setCartItems([]);
-    setIsCartOpen(false);
-    showToast('Sifarişiniz uğurla rəsmiləşdirildi!');
-  };
-
-  // Rental Booking Submit
-  const handleRentalBookingSubmit = (bookingData) => {
-    setRentalBookings((prev) => [bookingData, ...prev]);
-    showToast(`İcarə sorğusu satıcıya göndərildi!`);
-  };
-
-  // Wishlist Toggle
   const handleToggleFavorite = (productId) => {
-    setFavorites((prev) => {
-      const exists = prev.includes(productId);
-      if (exists) {
-        showToast('Elan sevimlilərdən çıxarıldı');
-        return prev.filter((id) => id !== productId);
+    if (!currentUser) {
+      handleRequireAuth('Elanları sevimlilərə əlavə etmək üçün daxil olun');
+      return;
+    }
+
+    setFavorites(prev => {
+      if (prev.includes(productId)) {
+        showToast('Elan sevimlilərdən silindi');
+        return prev.filter(id => id !== productId);
       } else {
-        showToast('Elan sevimlilərə əlavə olundu');
+        showToast('Elan sevimlilərə əlavə edildi');
         return [...prev, productId];
       }
     });
   };
 
-  // Navigation helpers
-  const handleNavigateToListings = (filters = {}) => {
-    setListingsFilters(filters);
+  const handleOpenProductDetail = (product) => {
+    setSelectedProduct(product);
+    setActivePage('product-detail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAddProductSubmit = (newProduct) => {
+    const updated = saveProduct(newProduct);
+    setProducts(updated);
+    setSelectedProduct(newProduct);
+    setActivePage('product-detail');
+    showToast('Təbriklər! Yeni elanınız uğurla paylaşıldı!');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateListings = (filters = {}) => {
+    setInitialListingFilters(filters);
     setActivePage('listings');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const totalCartCount = cartItems.reduce((acc, i) => acc + i.quantity, 0);
-  const favoriteProducts = productsData.filter((p) => favorites.includes(p.id));
+  const handleAddListingClick = () => {
+    if (!currentUser) {
+      handleRequireAuth('Yeni elan yerləşdirmək üçün zəhmət olmasa daxil olun');
+      return;
+    }
+    setActivePage('add-listing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const favoriteProducts = products.filter(p => favorites.includes(p.id));
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50/50 via-teal-50/30 to-green-100/40 text-gray-800 font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50/60 via-teal-50/30 to-green-100/40 text-gray-800 font-sans selection:bg-emerald-600 selection:text-white">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-900/90 backdrop-blur-xl text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-700/50 text-xs font-bold flex items-center gap-2 animate-slideUp">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 bg-emerald-950 text-white px-4 sm:px-5 py-3 rounded-2xl shadow-2xl border border-emerald-700/80 text-xs sm:text-sm font-bold flex items-center gap-2.5 animate-fadeIn">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Navigation Header */}
+      {/* Navbar */}
       <Navbar
         activePage={activePage}
-        setActivePage={(page) => {
-          setActivePage(page);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        cartCount={totalCartCount}
+        setActivePage={setActivePage}
+        cartCount={cartCount}
         openCart={() => setIsCartOpen(true)}
         currentUser={currentUser}
-        openAuthModal={() => setAuthModalOpen(true)}
-        openProfile={() => setActivePage('profile')}
+        openAuthModal={() => {
+          setAuthMessage('');
+          setAuthModalOpen(true);
+        }}
+        openProfile={() => {
+          setActivePage('profile');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onAddListingClick={handleAddListingClick}
       />
 
-      {/* Main Page Router */}
+      {/* Main Pages Router */}
       <main className="flex-1">
         {activePage === 'home' && (
           <HomePage
-            products={productsData}
-            onNavigateListings={handleNavigateToListings}
-            onSelectCategory={(cat) => handleNavigateToListings({ category: cat })}
-            onViewDetails={(product) => setSelectedProduct(product)}
+            products={products}
+            onNavigateListings={handleNavigateListings}
+            onSelectCategory={(catName) => handleNavigateListings({ category: catName })}
+            onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
-            onOpenRentModal={(product) => setRentModalProduct(product)}
-            onOpenContactModal={(product) => setContactModalProduct(product)}
+            onOpenRentModal={(prod) => setRentModalProduct(prod)}
+            onOpenContactModal={(prod) => setContactModalProduct(prod)}
             favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
+            currentUser={currentUser}
+            onRequireAuth={handleRequireAuth}
           />
         )}
 
         {activePage === 'listings' && (
           <ListingsPage
-            products={productsData}
-            initialFilters={listingsFilters}
-            onViewDetails={(product) => setSelectedProduct(product)}
+            products={products}
+            initialFilters={initialListingFilters}
+            onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
-            onOpenRentModal={(product) => setRentModalProduct(product)}
-            onOpenContactModal={(product) => setContactModalProduct(product)}
+            onOpenRentModal={(prod) => setRentModalProduct(prod)}
+            onOpenContactModal={(prod) => setContactModalProduct(prod)}
             favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
+            currentUser={currentUser}
+            onRequireAuth={handleRequireAuth}
+          />
+        )}
+
+        {activePage === 'product-detail' && (
+          <ProductDetailPage
+            product={selectedProduct}
+            allProducts={products}
+            onBack={() => setActivePage('listings')}
+            onNavigateProduct={handleOpenProductDetail}
+            onAddToCart={handleAddToCart}
+            onOpenRentModal={(prod) => setRentModalProduct(prod)}
+            onOpenContactModal={(prod) => setContactModalProduct(prod)}
+            isFavorite={selectedProduct ? favorites.includes(selectedProduct.id) : false}
+            onToggleFavorite={handleToggleFavorite}
+            currentUser={currentUser}
+            onRequireAuth={handleRequireAuth}
+          />
+        )}
+
+        {activePage === 'add-listing' && (
+          <AddListingPage
+            currentUser={currentUser}
+            onRequireAuth={handleRequireAuth}
+            onAddProduct={handleAddProductSubmit}
+            onCancel={() => setActivePage('home')}
           />
         )}
 
         {activePage === 'profile' && (
           <ProfilePage
             user={currentUser}
-            onLogout={() => {
-              setCurrentUser(null);
-              setActivePage('home');
-              showToast('Hesabdan çıxış edildi');
-            }}
+            onLogout={handleLogout}
             rentalBookings={rentalBookings}
             orders={orders}
             favoriteProducts={favoriteProducts}
-            onViewDetails={(product) => setSelectedProduct(product)}
+            onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
-            onOpenRentModal={(product) => setRentModalProduct(product)}
-            onOpenContactModal={(product) => setContactModalProduct(product)}
+            onOpenRentModal={(prod) => setRentModalProduct(prod)}
+            onOpenContactModal={(prod) => setContactModalProduct(prod)}
             onToggleFavorite={handleToggleFavorite}
+            currentUser={currentUser}
+            onRequireAuth={handleRequireAuth}
+            onAddNewListing={handleAddListingClick}
           />
         )}
 
-        {activePage === 'about' && <AboutPage />}
-        {activePage === 'faq' && <FaqPage />}
-        {activePage === 'contact' && <ContactPage />}
-        {activePage === 'social' && <SocialFeedPage />}
+        {activePage === 'about' && <AboutPage onNavigateListings={handleNavigateListings} />}
+        {activePage === 'faq' && <FaqPage onNavigateContact={() => setActivePage('contact')} />}
+        {activePage === 'contact' && <ContactPage onShowToast={showToast} />}
+        {activePage === 'social' && <SocialFeedPage onNavigateListings={handleNavigateListings} />}
       </main>
 
-      {/* Global Footer */}
-      <Footer onNavigate={(page) => { setActivePage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-
-      {/* Modals & Drawers */}
-      <ProductDetailModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={handleAddToCart}
-        onOpenRentModal={(product) => setRentModalProduct(product)}
-        onOpenContactModal={(product) => setContactModalProduct(product)}
+      {/* Footer */}
+      <Footer
+        onNavigate={(page) => {
+          setActivePage(page);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onSelectCategory={(catName) => handleNavigateListings({ category: catName })}
       />
 
-      <RentalBookingModal
-        product={rentModalProduct}
-        onClose={() => setRentModalProduct(null)}
-        onSubmitBooking={handleRentalBookingSubmit}
-      />
-
-      <SellerContactModal
-        product={contactModalProduct}
-        onClose={() => setContactModalProduct(null)}
-      />
-
+      {/* Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveFromCart}
-        onCheckout={handleCheckout}
+        onUpdateQuantity={(id, delta) => {
+          setCartItems(prev =>
+            prev
+              .map(item => (item.id === id ? { ...item, quantity: item.quantity + delta } : item))
+              .filter(item => item.quantity > 0)
+          );
+        }}
+        onRemoveItem={(id) => setCartItems(prev => prev.filter(item => item.id !== id))}
+        onCheckoutSuccess={(newOrder) => {
+          setOrders(prev => [newOrder, ...prev]);
+          setCartItems([]);
+          setIsCartOpen(false);
+          showToast('Sifarişiniz uğurla rəsmiləşdirildi!');
+        }}
       />
 
+      {/* Rental Booking Modal */}
+      <RentalBookingModal
+        isOpen={!!rentModalProduct}
+        product={rentModalProduct}
+        onClose={() => setRentModalProduct(null)}
+        onSubmitBooking={(bookingData) => {
+          setRentalBookings(prev => [bookingData, ...prev]);
+          setRentModalProduct(null);
+          showToast('İcarə sorğunuz satıcıya göndərildi!');
+        }}
+      />
+
+      {/* Seller Contact Modal for Heavy Equipment / Land */}
+      <SellerContactModal
+        isOpen={!!contactModalProduct}
+        product={contactModalProduct}
+        onClose={() => setContactModalProduct(null)}
+        onSendMessage={(msgData) => {
+          setContactModalProduct(null);
+          showToast('Mesajınız satıcıya çatdırıldı!');
+        }}
+      />
+
+      {/* Auth Modal (Login / Register to JSON Store) */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
-        onLoginSuccess={(user) => {
-          setCurrentUser(user);
-          showToast(`Xoş gəldiniz, ${user.name}!`);
-        }}
+        onAuthSuccess={handleAuthSuccess}
+        initialMessage={authMessage}
       />
 
     </div>

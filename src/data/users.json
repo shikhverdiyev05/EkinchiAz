@@ -1,0 +1,24 @@
+[
+    {
+      "id": "usr-1",
+      "name": "Rəşad Qasımov",
+      "email": "fermer@aqrobazar.az",
+      "phone": "+994 50 123 45 67",
+      "userType": "farmer",
+      "region": "Quba",
+      "balance": "150.00 AZN",
+      "joinedDate": "İyul 2024",
+      "avatar": "R"
+    },
+    {
+      "id": "usr-2",
+      "name": "Muğan Aqro MMC",
+      "email": "info@muganaqro.az",
+      "phone": "+994 50 333 99 11",
+      "userType": "company",
+      "region": "Ucar",
+      "balance": "1200.00 AZN",
+      "joinedDate": "Mart 2023",
+      "avatar": "M"
+    }
+]
