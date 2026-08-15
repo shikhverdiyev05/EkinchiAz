@@ -1,9 +1,9 @@
 import HeroSection from '../components/HeroSection';
 import ProductCard from '../components/ProductCard';
-import { CATEGORIES } from '../data/categories';
 
 export default function HomePage({
   products,
+  categories = [],
   onNavigateListings,
   onSelectCategory,
   onViewDetails,
@@ -54,7 +54,7 @@ export default function HomePage({
           </div>
 
           <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto no-scrollbar pb-3 sm:pb-0 scroll-smooth snap-x">
-            {CATEGORIES.filter(c => c.id !== 'all').map((cat) => (
+            {categories.filter(c => c.id !== 'all').map((cat) => (
               <div
                 key={cat.id}
                 onClick={() => onNavigateListings({ category: cat.name })}

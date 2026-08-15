@@ -21,12 +21,40 @@ export default function ProductCard({
     onToggleFavorite(product.id);
   };
 
+  const handleAddToCartClick = (e) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      if (onRequireAuth) onRequireAuth('Məhsulu səbətə əlavə etmək üçün daxil olun');
+      return;
+    }
+    onAddToCart(product);
+  };
+
+  const handleContactClick = (e) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      if (onRequireAuth) onRequireAuth('Satıcı ilə əlaqə saxlamaq üçün daxil olun');
+      return;
+    }
+    onOpenContactModal(product);
+  };
+
+  const handleRentClick = (e) => {
+    e.stopPropagation();
+    if (!currentUser) {
+      if (onRequireAuth) onRequireAuth('İcarə sifarişi göndərmək üçün daxil olun');
+      return;
+    }
+    onOpenRentModal(product);
+  };
+
   return (
     <div 
       onClick={() => onViewDetails(product)}
       className="group bg-white/85 backdrop-blur-md rounded-3xl border border-emerald-100/90 hover:border-emerald-300 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer active:scale-[0.99]"
     >
       <div>
+        {/* Image & Badges */}
         <div className="relative aspect-[16/10] w-full overflow-hidden bg-emerald-950/10">
           <img 
             src={product.image} 
@@ -58,7 +86,11 @@ export default function ProductCard({
           </div>
         </div>
 
+        {/* Content */}
         <div className="p-4 sm:p-5">
+          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block mb-1">
+            {product.category} {product.subcategory ? `• ${product.subcategory}` : ''}
+          </span>
           <h3 className="font-bold text-gray-900 text-sm sm:text-base group-hover:text-emerald-700 transition line-clamp-2 leading-snug">
             {product.title}
           </h3>
@@ -68,6 +100,7 @@ export default function ProductCard({
         </div>
       </div>
 
+      {/* Footer Price & Action */}
       <div className="p-4 sm:p-5 pt-0">
         <div className="pt-3 border-t border-emerald-100 flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -80,7 +113,7 @@ export default function ProductCard({
           <div className="flex items-center gap-1.5 ml-auto">
             {product.canAddToCart && (
               <button
-                onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+                onClick={handleAddToCartClick}
                 className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs active:scale-95 transition"
               >
                 + Səbətə at
@@ -89,7 +122,7 @@ export default function ProductCard({
 
             {product.requiresInquiry && isSale && (
               <button
-                onClick={(e) => { e.stopPropagation(); onOpenContactModal(product); }}
+                onClick={handleContactClick}
                 className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs active:scale-95 transition"
               >
                 Satıcı ilə əlaqə
@@ -98,7 +131,7 @@ export default function ProductCard({
 
             {isRent && (
               <button
-                onClick={(e) => { e.stopPropagation(); onOpenRentModal(product); }}
+                onClick={handleRentClick}
                 className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs active:scale-95 transition"
               >
                 İcarə sifarişi

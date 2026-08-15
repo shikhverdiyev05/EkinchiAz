@@ -1,4 +1,3 @@
-import { CATEGORIES, REGIONS } from '../data/categories';
 
 export default function FilterSidebar({
   selectedType,
@@ -10,8 +9,13 @@ export default function FilterSidebar({
   maxPrice,
   setMaxPrice,
   onReset,
-  onCloseMobile
+  onCloseMobile,
+  categories = [],
+  regions = []
 }) {
+  const activeCategories = Array.isArray(categories) ? categories : [];
+  const activeRegions = Array.isArray(regions) ? regions : [];
+
   return (
     <aside className="bg-white/90 backdrop-blur-xl rounded-3xl border border-emerald-100/90 p-4 sm:p-5 shadow-xs space-y-5">
       
@@ -88,11 +92,11 @@ export default function FilterSidebar({
           Kateqoriyalar
         </label>
         <div className="space-y-1 max-h-48 sm:max-h-56 overflow-y-auto pr-1 text-xs">
-          {CATEGORIES.map((cat) => {
+          {activeCategories.map((cat) => {
             const isSelected = selectedCategory === cat.name || (cat.id === 'all' && selectedCategory === 'all');
             return (
               <button
-                key={cat.id}
+                key={cat.id || cat.name}
                 onClick={() => setSelectedCategory(cat.id === 'all' ? 'all' : cat.name)}
                 className={`w-full text-left px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl transition flex items-center justify-between text-xs ${
                   isSelected
@@ -120,7 +124,7 @@ export default function FilterSidebar({
           onChange={(e) => setSelectedRegion(e.target.value)}
           className="w-full px-3 py-2 sm:py-2.5 rounded-2xl bg-white border border-emerald-100 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500"
         >
-          {REGIONS.map((reg) => (
+          {activeRegions.map((reg) => (
             <option key={reg} value={reg === 'Hamısı' ? 'all' : reg}>
               {reg}
             </option>

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Komponentlər
 import Navbar from './components/Navbar';
@@ -9,7 +9,7 @@ import RentalBookingModal from './components/RentalBookingModal';
 import SellerContactModal from './components/SellerContactModal';
 import AuthModal from './components/AuthModal';
 
-// Bütün Səhifələr
+// Səhifələr
 import HomePage from './pages/HomePage';
 import ListingsPage from './pages/ListingsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -17,19 +17,30 @@ import AddListingPage from './pages/AddListingPage';
 import ProfilePage from './pages/ProfilePage';
 import { AboutPage, FaqPage, ContactPage, SocialFeedPage } from './pages/StaticPages';
 
-// Datalar və Servislər
-import { CATEGORIES, REGIONS } from './data/categories';
+// REST API Servisi
 import { 
-  getStoredProducts, 
-  saveProduct, 
-  getStoredCurrentUser, 
-  logoutUser 
-} from './services/storageService';
+  getProductsApi, 
+  getCategoriesApi,
+  getRegionsApi,
+  createProductApi 
+} from './services/apiService';
+import { getStoredCurrentUser, setStoredCurrentUser, logoutUser } from './services/storageService';
 
 export default function App() {
-  // Səhifələmə vəziyyəti: 'home' | 'listings' | 'product-detail' | 'add-listing' | 'profile' | 'about' | 'faq' | 'contact' | 'social'
-  const [activePage, setActivePage] = useState('home');
-  const [products, setProducts] = useState(() => getStoredProducts() || []);
+  const [activePage, setActivePage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '');
+      if (['home', 'listings', 'add-listing', 'profile', 'about', 'faq', 'contact', 'social'].includes(hash)) {
+        return hash;
+      }
+    }
+    return 'home';
+  });
+
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [regions, setRegions] = useState([]);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   
   // Auth state
@@ -43,30 +54,55 @@ export default function App() {
   const [rentalBookings, setRentalBookings] = useState([]);
   const [orders, setOrders] = useState([]);
 
-  // Favorites: Default liked state false
+  // Favorites
   const [favorites, setFavorites] = useState([]);
 
-  // Modals for rent & contact
+  // Modals
   const [rentModalProduct, setRentModalProduct] = useState(null);
   const [contactModalProduct, setContactModalProduct] = useState(null);
 
-  // Toast
   const [toastMessage, setToastMessage] = useState(null);
   const [initialListingFilters, setInitialListingFilters] = useState({});
 
-  // URL Hash Routing Sinxronizasiyası (Geri/İrəli düymələri və URL keçidləri üçün)
+  // REST API-dən məhsul və kateqoriyaları çəkmək (GET)
   useEffect(() => {
+    let isMounted = true;
+
+    async function loadApiData() {
+      setIsDataLoading(true);
+      try {
+        const [apiProds, apiCats, apiRegions] = await Promise.all([
+          getProductsApi(),
+          getCategoriesApi(),
+          getRegionsApi()
+        ]);
+        if (isMounted) {
+          setProducts(Array.isArray(apiProds) ? apiProds : []);
+          setCategories(Array.isArray(apiCats) ? apiCats : []);
+          setRegions(Array.isArray(apiRegions) ? apiRegions : []);
+        }
+      } catch (err) {
+        console.error('API data loading error:', err);
+      } finally {
+        if (isMounted) setIsDataLoading(false);
+      }
+    }
+
+    loadApiData();
+
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
       if (hash.startsWith('mehsul-')) {
         const prodId = hash.replace('mehsul-', '');
-        const currentProducts = getStoredProducts();
-        const found = currentProducts.find(p => p.id === prodId);
-        if (found) {
-          setSelectedProduct(found);
-          setActivePage('product-detail');
-          return;
-        }
+        setProducts(prev => {
+          const found = prev.find(p => p.id === prodId);
+          if (found) {
+            setSelectedProduct(found);
+            setActivePage('product-detail');
+          }
+          return prev;
+        });
+        return;
       }
       if (['home', 'listings', 'add-listing', 'profile', 'about', 'faq', 'contact', 'social'].includes(hash)) {
         setActivePage(hash);
@@ -74,9 +110,10 @@ export default function App() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    handleHashChange();
-
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
   const navigateTo = (page, param = null) => {
@@ -102,6 +139,7 @@ export default function App() {
 
   const handleAuthSuccess = (user, message) => {
     setCurrentUser(user);
+    setStoredCurrentUser(user);
     showToast(message || 'Giriş uğurla edildi!');
   };
 
@@ -112,7 +150,13 @@ export default function App() {
     showToast('Hesabdan çıxış edildi');
   };
 
+  // 1. SƏBƏTƏ ƏLAVƏ ETMƏK (Login Tələb Olunur)
   const handleAddToCart = (product) => {
+    if (!currentUser) {
+      handleRequireAuth('Məhsulu səbətə əlavə etmək üçün daxil olun');
+      return;
+    }
+
     if (!product || !product.canAddToCart) {
       showToast('Bu məhsul səbətə əlavə edilmir!');
       return;
@@ -133,6 +177,7 @@ export default function App() {
     showToast(`"${titleStr}..." səbətə atıldı!`);
   };
 
+  // 2. SEVİMLİLƏRƏ ƏLAVƏ ETMƏK (Login Tələb Olunur)
   const handleToggleFavorite = (productId) => {
     if (!currentUser) {
       handleRequireAuth('Elanları sevimlilərə əlavə etmək üçün daxil olun');
@@ -151,22 +196,35 @@ export default function App() {
     });
   };
 
+  // 3. İCARƏ SİFARİŞİ (Login Tələb Olunur)
+  const handleOpenRentModal = (prod) => {
+    if (!currentUser) {
+      handleRequireAuth('İcarə sifarişi göndərmək üçün daxil olun');
+      return;
+    }
+    setRentModalProduct(prod);
+  };
+
+  // 4. SATICI İLƏ ƏLAQƏ (Login Tələb Olunur)
+  const handleOpenContactModal = (prod) => {
+    if (!currentUser) {
+      handleRequireAuth('Satıcı ilə əlaqə saxlamaq üçün daxil olun');
+      return;
+    }
+    setContactModalProduct(prod);
+  };
+
   const handleOpenProductDetail = (product) => {
     if (!product) return;
     navigateTo('product-detail', product);
   };
 
+  // 5. YENİ ELAN PAYLAŞMAQ (REST API POST)
   const handleAddProductSubmit = (newProduct) => {
-    try {
-      const updated = saveProduct(newProduct);
-      setProducts(updated || [newProduct, ...products]);
-      navigateTo('product-detail', newProduct);
-      showToast('Təbriklər! Yeni elanınız uğurla paylaşıldı!');
-    } catch (e) {
-      console.error(e);
-      setProducts(prev => [newProduct, ...prev]);
-      navigateTo('product-detail', newProduct);
-    }
+    setProducts(prev => [newProduct, ...prev]);
+    setSelectedProduct(newProduct);
+    navigateTo('product-detail', newProduct);
+    showToast('Təbriklər! Yeni elanınız REST API vasitəsilə paylaşıldı!');
   };
 
   const handleNavigateListings = (filters = {}) => {
@@ -188,7 +246,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50/60 via-teal-50/30 to-green-100/40 text-gray-800 font-sans selection:bg-emerald-600 selection:text-white">
       
-      {/* Toast Bildirişi */}
+      {/* Toast */}
       {toastMessage && (
         <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 bg-emerald-950 text-white px-4 sm:px-5 py-3 rounded-2xl shadow-2xl border border-emerald-700/80 text-xs sm:text-sm font-bold flex items-center gap-2.5 animate-fadeIn">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -217,19 +275,18 @@ export default function App() {
         onAddListingClick={handleAddListingClick}
       />
 
-      {/* 🧭 ƏSAS ROUTING HİSSƏSİ */}
+      {/* Əsas Səhifələr */}
       <main className="flex-1">
-        
-        {/* 1. ANA SƏHİFƏ */}
         {activePage === 'home' && (
           <HomePage
             products={products || []}
+            categories={categories || []}
             onNavigateListings={handleNavigateListings}
             onSelectCategory={(catName) => handleNavigateListings({ category: catName })}
             onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
-            onOpenRentModal={(prod) => setRentModalProduct(prod)}
-            onOpenContactModal={(prod) => setContactModalProduct(prod)}
+            onOpenRentModal={handleOpenRentModal}
+            onOpenContactModal={handleOpenContactModal}
             favorites={favorites || []}
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
@@ -237,15 +294,16 @@ export default function App() {
           />
         )}
 
-        {/* 2. BÜTÜN ELANLAR SƏHİFƏSİ (SATIŞ & İCARƏ) */}
         {activePage === 'listings' && (
           <ListingsPage
             products={products || []}
+            categories={categories || []}
+            regions={regions || []}
             initialFilters={initialListingFilters}
             onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
-            onOpenRentModal={(prod) => setRentModalProduct(prod)}
-            onOpenContactModal={(prod) => setContactModalProduct(prod)}
+            onOpenRentModal={handleOpenRentModal}
+            onOpenContactModal={handleOpenContactModal}
             favorites={favorites || []}
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
@@ -253,7 +311,6 @@ export default function App() {
           />
         )}
 
-        {/* 3. MƏHSUL DETALLARI SƏHİFƏSİ */}
         {activePage === 'product-detail' && (
           <ProductDetailPage
             product={selectedProduct || products[0]}
@@ -261,8 +318,8 @@ export default function App() {
             onBack={() => navigateTo('listings')}
             onNavigateProduct={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
-            onOpenRentModal={(prod) => setRentModalProduct(prod)}
-            onOpenContactModal={(prod) => setContactModalProduct(prod)}
+            onOpenRentModal={handleOpenRentModal}
+            onOpenContactModal={handleOpenContactModal}
             isFavorite={selectedProduct ? (favorites || []).includes(selectedProduct.id) : false}
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
@@ -270,17 +327,17 @@ export default function App() {
           />
         )}
 
-        {/* 4. YENİ ELAN YERLƏŞDİRMƏK SƏHİFƏSİ */}
         {activePage === 'add-listing' && (
           <AddListingPage
             currentUser={currentUser}
+            categories={categories || []}
+            regions={regions || []}
             onRequireAuth={handleRequireAuth}
             onAddProduct={handleAddProductSubmit}
             onCancel={() => navigateTo('home')}
           />
         )}
 
-        {/* 5. İSTİFADƏÇİ PROFİLİ SƏHİFƏSİ */}
         {activePage === 'profile' && (
           <ProfilePage
             user={currentUser}
@@ -290,8 +347,8 @@ export default function App() {
             favoriteProducts={favoriteProducts || []}
             onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
-            onOpenRentModal={(prod) => setRentModalProduct(prod)}
-            onOpenContactModal={(prod) => setContactModalProduct(prod)}
+            onOpenRentModal={handleOpenRentModal}
+            onOpenContactModal={handleOpenContactModal}
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
             onRequireAuth={handleRequireAuth}
@@ -299,18 +356,10 @@ export default function App() {
           />
         )}
 
-        {/* 6. SOSİAL PAYLAŞIMLAR FEEDİ */}
         {activePage === 'social' && <SocialFeedPage onNavigateListings={handleNavigateListings} />}
-
-        {/* 7. HAQQIMIZDA SƏHİFƏSİ */}
         {activePage === 'about' && <AboutPage onNavigateListings={handleNavigateListings} />}
-
-        {/* 8. TEZ-TEZ VERİLƏN SUALLAR (FAQ) */}
         {activePage === 'faq' && <FaqPage onNavigateContact={() => navigateTo('contact')} />}
-
-        {/* 9. ƏLAQƏ SƏHİFƏSİ */}
         {activePage === 'contact' && <ContactPage onShowToast={showToast} />}
-
       </main>
 
       {/* Footer */}
@@ -319,11 +368,13 @@ export default function App() {
         onSelectCategory={(catName) => handleNavigateListings({ category: catName })}
       />
 
-      {/* Səbət Pəncərəsi (Cart Drawer) */}
+      {/* Səbət */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems || []}
+        currentUser={currentUser}
+        onRequireAuth={handleRequireAuth}
         onUpdateQuantity={(id, delta) => {
           setCartItems(prev =>
             (Array.isArray(prev) ? prev : [])
@@ -340,7 +391,7 @@ export default function App() {
         }}
       />
 
-      {/* İcarə Rezervasiya Modalı */}
+      {/* İcarə Modalı */}
       <RentalBookingModal
         isOpen={!!rentModalProduct}
         product={rentModalProduct}
@@ -348,7 +399,7 @@ export default function App() {
         onSubmitBooking={(bookingData) => {
           setRentalBookings(prev => [bookingData, ...(Array.isArray(prev) ? prev : [])]);
           setRentModalProduct(null);
-          showToast('İcarə sorğunuz satıcıya göndərildi!');
+          showToast('İcarə sorğunuz göndərildi!');
         }}
       />
 

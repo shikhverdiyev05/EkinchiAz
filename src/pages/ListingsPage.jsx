@@ -3,7 +3,9 @@ import FilterSidebar from '../components/FilterSidebar';
 import ProductCard from '../components/ProductCard';
 
 export default function ListingsPage({
-  products,
+  products = [],
+  categories = [],
+  regions = [],
   initialFilters = {},
   onViewDetails,
   onAddToCart,
@@ -93,6 +95,8 @@ export default function ListingsPage({
               maxPrice={maxPrice}
               setMaxPrice={setMaxPrice}
               onReset={handleResetFilters}
+              categories={categories}
+              regions={regions}
             />
           </div>
         </div>
@@ -218,6 +222,8 @@ export default function ListingsPage({
                   setMaxPrice={setMaxPrice}
                   onReset={handleResetFilters}
                   onCloseMobile={() => setMobileFilterOpen(false)}
+                  categories={categories}
+                  regions={regions}
                 />
               </div>
             </div>

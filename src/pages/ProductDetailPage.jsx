@@ -44,15 +44,35 @@ export default function ProductDetailPage({
   };
 
   const handleAddToCartWithQty = () => {
+    if (!currentUser) {
+      if (onRequireAuth) onRequireAuth('Məhsulu səbətə əlavə etmək üçün daxil olun');
+      return;
+    }
     for (let i = 0; i < quantity; i++) {
       onAddToCart(product);
     }
   };
 
+  const handleOpenContact = () => {
+    if (!currentUser) {
+      if (onRequireAuth) onRequireAuth('Satıcı ilə əlaqə saxlamaq üçün daxil olun');
+      return;
+    }
+    onOpenContactModal(product);
+  };
+
+  const handleOpenRent = () => {
+    if (!currentUser) {
+      if (onRequireAuth) onRequireAuth('İcarə sifarişi göndərmək üçün daxil olun');
+      return;
+    }
+    onOpenRentModal(product);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-10 pb-24 lg:pb-16 animate-fadeIn">
       
-      {/* Breadcrumb və Üst Əməliyyat */}
+      {/* Breadcrumb */}
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2 text-gray-500 font-medium overflow-x-auto py-1">
           <button onClick={onBack} className="hover:text-emerald-700 font-bold flex items-center gap-1 text-emerald-800">
@@ -60,8 +80,14 @@ export default function ProductDetailPage({
           </button>
           <span>/</span>
           <span className="text-gray-600">{product.category}</span>
+          {product.subcategory && (
+            <>
+              <span>/</span>
+              <span className="text-gray-600">{product.subcategory}</span>
+            </>
+          )}
           <span>/</span>
-          <span className="text-gray-900 font-bold truncate max-w-[220px]">{product.title}</span>
+          <span className="text-gray-900 font-bold truncate max-w-[200px]">{product.title}</span>
         </div>
 
         <button
@@ -77,7 +103,7 @@ export default function ProductDetailPage({
         </button>
       </div>
 
-      {/* Əsas Qrid */}
+      {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         
         {/* Sol Sütun: Qalereya və Satıcı */}
@@ -111,7 +137,7 @@ export default function ProductDetailPage({
             </div>
           </div>
 
-          {/* Şəkil Qalereyası */}
+          {/* Qalereya */}
           {gallery.length > 1 && (
             <div className="flex gap-2.5 overflow-x-auto pb-1">
               {gallery.map((imgUrl, idx) => (
@@ -128,7 +154,7 @@ export default function ProductDetailPage({
             </div>
           )}
 
-          {/* Satıcı Əlaqə Kartı */}
+          {/* Satıcı Kartı */}
           {product.seller && (
             <div className="p-5 rounded-3xl bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-xs space-y-3.5">
               <div className="flex items-center gap-3.5">
@@ -144,7 +170,7 @@ export default function ProductDetailPage({
                       </span>
                     )}
                   </h4>
-                  <p className="text-xs text-gray-500">Üzvlük: {product.seller.memberSince || '2023'} • Reytinq: {product.seller.rating || '5.0'} ★</p>
+                  <p className="text-xs text-gray-500">Üzvlük: {product.seller.memberSince || '2024'} • Reytinq: {product.seller.rating || '5.0'} ★</p>
                 </div>
               </div>
 
@@ -169,13 +195,20 @@ export default function ProductDetailPage({
 
         </div>
 
-        {/* Sağ Sütun: Qiymət, Əməliyyatlar və Xüsusiyyətlər */}
+        {/* Sağ Sütun: Qiymət və Əməliyyatlar */}
         <div className="lg:col-span-6 space-y-6">
           
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
-              Elan Kodu: #{product.id}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+                Elan Kodu: #{product.id}
+              </span>
+              {product.subcategory && (
+                <span className="text-[10px] font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md">
+                  {product.subcategory}
+                </span>
+              )}
+            </div>
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight leading-snug mt-2">
               {product.title}
             </h1>
@@ -216,7 +249,7 @@ export default function ProductDetailPage({
             </div>
           </div>
 
-          {/* Dinamik Əməliyyat Düymələri */}
+          {/* Dinamik Əməliyyat Düymələri (Auth Guarded) */}
           <div className="p-5 rounded-3xl bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-xs space-y-4">
             
             {product.canAddToCart && (
@@ -256,7 +289,7 @@ export default function ProductDetailPage({
                   Bu kateqoriyadakı texnika və torpaq əmlakı səbətə əlavə olunmur, birbaşa satıcı ilə razılaşdırılır.
                 </p>
                 <button
-                  onClick={() => onOpenContactModal(product)}
+                  onClick={handleOpenContact}
                   className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow-md transition active:scale-[0.99]"
                 >
                   Satıcı ilə Əlaqə Saxla və Razılaş
@@ -270,7 +303,7 @@ export default function ProductDetailPage({
                   Mövsümlük və ya günlük icarə rezervasiyası yaradın:
                 </p>
                 <button
-                  onClick={() => onOpenRentModal(product)}
+                  onClick={handleOpenRent}
                   className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white font-bold text-sm shadow-md transition active:scale-[0.99]"
                 >
                   İcarə Sifarişi və Rezervasiya

@@ -1,35 +1,45 @@
-/* eslint-disable no-useless-assignment */
+/* eslint-disable no-unused-vars */
 import { useState } from 'react';
-import { CATEGORIES, REGIONS } from '../data/categories';
+import { createProductApi } from '../services/apiService';
 
 export default function AddListingPage({
   currentUser,
+  categories = [],
+  regions = [],
   onRequireAuth,
   onAddProduct,
   onCancel
 }) {
-  const [type, setType] = useState('sale'); // 'sale' | 'rent'
+  const [type, setType] = useState('sale');
   const [category, setCategory] = useState('Gübrələr');
+  const [subcategory, setSubcategory] = useState('');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [unit, setUnit] = useState('AZN / kisə');
   const [year, setYear] = useState(new Date().getFullYear());
   const [location, setLocation] = useState('Bərdə');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=80');
   
-  // Dynamic features key-value pairs
+  // Şəkil yükləmə: Həm Fayl, həm də URL
+  const [imageUploadType, setImageUploadType] = useState('file');
+  const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=80');
+  const [imageFilePreview, setImageFilePreview] = useState('');
+  
   const [features, setFeatures] = useState([
     { key: 'Vəziyyəti', value: 'Yeni' },
     { key: 'Zəmanət', value: '1 il' }
   ]);
 
-  // Seller info
   const [sellerName, setSellerName] = useState(currentUser?.name || '');
   const [sellerPhone, setSellerPhone] = useState(currentUser?.phone || '+994 50 123 45 67');
   const [sellerWhatsapp, setSellerWhatsapp] = useState('994501234567');
 
-  // Helper to get suggested unit without useEffect
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const activeCategoryObj = categories.find(c => c.name === category);
+  const subcategoriesList = activeCategoryObj?.subcategories || [];
+
   const getSuggestedUnit = (selectedType, selectedCategory) => {
     if (selectedType === 'rent') {
       return selectedCategory === 'Torpaq, Bağ və Əkin Sahələri' ? 'AZN / hektar / il' : 'AZN / gün';
@@ -52,85 +62,77 @@ export default function AddListingPage({
 
   const handleCategorySelect = (newCategory) => {
     setCategory(newCategory);
+    const catObj = categories.find(c => c.name === newCategory);
+    setSubcategory(catObj?.subcategories?.[0] || '');
     setUnit(getSuggestedUnit(type, newCategory));
   };
 
-  // Check login requirement
-  if (!currentUser) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center animate-fadeIn">
-        <div className="p-8 rounded-3xl bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-xl space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 text-3xl flex items-center justify-center mx-auto">
-            🔒
-          </div>
-          <h2 className="text-2xl font-black text-gray-900">Giriş Tələb Olunur</h2>
-          <p className="text-xs sm:text-sm text-gray-600">
-            AqroBazar platformasında yeni satış və ya icarə elanı yerləşdirmək üçün şəxsi hesabınıza daxil olmalısınız.
-          </p>
-          <button
-            onClick={() => onRequireAuth('Yeni elan yerləşdirmək üçün daxil olun')}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md"
-          >
-            Giriş Et / Qeydiyyatdan Keç
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const handleAddFeature = () => {
-    setFeatures([...features, { key: '', value: '' }]);
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Şəklin həcmi maksimum 5MB ola bilər' }));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageFilePreview(reader.result);
+        setImageUrl(reader.result);
+        setErrors(prev => ({ ...prev, image: '' }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleRemoveFeature = (index) => {
-    setFeatures(features.filter((_, i) => i !== index));
-  };
-
-  const handleFeatureChange = (index, field, val) => {
+  const handleAddFeature = () => setFeatures([...features, { key: '', value: '' }]);
+  const handleRemoveFeature = (idx) => setFeatures(features.filter((_, i) => i !== idx));
+  const handleFeatureChange = (idx, field, val) => {
     const updated = [...features];
-    updated[index][field] = val;
+    updated[idx][field] = val;
     setFeatures(updated);
   };
 
-  const handleSubmit = (e) => {
+  const validateListing = () => {
+    const errs = {};
+    const phoneRegex = /^(\+994|0)(50|51|55|70|77|99|10|60)\d{7}$/;
+
+    if (!title.trim() || title.trim().length < 5) errs.title = 'Elan başlığı ən azı 5 simvol olmalıdır';
+    if (!price || Number(price) <= 0) errs.price = 'Qiymət 0-dan böyük olmalıdır';
+    if (!description.trim() || description.trim().length < 15) errs.description = 'Təsvir ən azı 15 simvol olmalıdır';
+
+    const cleanedPhone = sellerPhone.replace(/\s+/g, '');
+    if (!cleanedPhone || !phoneRegex.test(cleanedPhone)) errs.sellerPhone = 'Düzgün nömrə: +994 50 123 45 67';
+    if (!imageUrl && !imageFilePreview) errs.image = 'Şəkil mütləq əlavə edilməlidir';
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Determine business logic flags
-    const isHeavyOrLand = category === 'Kənd Təsərrüfatı Texnikaları' || category === 'Torpaq, Bağ və Əkin Sahələri';
-    
-    let canAddToCart = false;
-    let requiresInquiry = false;
-    let isRental = false;
-
-    if (type === 'sale') {
-      if (isHeavyOrLand) {
-        canAddToCart = false;
-        requiresInquiry = true;
-      } else {
-        canAddToCart = true;
-        requiresInquiry = false;
-      }
-    } else {
-      isRental = true;
-      canAddToCart = false;
-      requiresInquiry = false;
+    if (!currentUser) {
+      onRequireAuth('Elanı paylaşmaq üçün zəhmət olmasa daxil olun');
+      return;
     }
 
+    if (!validateListing()) return;
+    setSubmitting(true);
+
+    const isHeavyOrLand = category === 'Kənd Təsərrüfatı Texnikaları' || category === 'Torpaq, Bağ və Əkin Sahələri';
     const featureObj = {};
     features.forEach(f => {
-      if (f.key.trim() && f.value.trim()) {
-        featureObj[f.key.trim()] = f.value.trim();
-      }
+      if (f.key.trim() && f.value.trim()) featureObj[f.key.trim()] = f.value.trim();
     });
+
+    const finalImage = imageFilePreview || imageUrl || 'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=80';
 
     const newProduct = {
       id: `prod-${Date.now()}`,
       title: title.trim(),
       type: type,
-      canAddToCart: canAddToCart,
-      requiresInquiry: requiresInquiry,
-      isRental: isRental,
       category: category,
+      subcategory: subcategory,
       price: Number(price),
       unit: unit,
       year: Number(year),
@@ -138,10 +140,13 @@ export default function AddListingPage({
       inStock: true,
       rating: 5.0,
       reviewsCount: 1,
-      image: imageUrl.trim() || 'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=80',
-      gallery: [imageUrl.trim()],
+      image: finalImage,
+      gallery: [finalImage],
       description: description.trim(),
       features: featureObj,
+      canAddToCart: type === 'sale' && !isHeavyOrLand,
+      requiresInquiry: type === 'sale' && isHeavyOrLand,
+      isRental: type === 'rent',
       seller: {
         name: sellerName || currentUser.name,
         phone: sellerPhone,
@@ -153,302 +158,267 @@ export default function AddListingPage({
       userId: currentUser.id
     };
 
-    onAddProduct(newProduct);
+    try {
+      const result = await createProductApi(newProduct);
+      onAddProduct(result || newProduct);
+    } catch (err) {
+      onAddProduct(newProduct);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 pb-24 lg:pb-16 animate-fadeIn">
-      
-      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
-            Elan Yerləşdirmə Paneli
+          <span className="text-[10px] sm:text-xs font-black uppercase text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+            Elan Paneli
           </span>
-          <h1 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight mt-1.5">
+          <h1 className="text-2xl sm:text-4xl font-black text-gray-900 mt-1.5">
             Yeni Aqrar Elan Əlavə Et
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Satış və ya icarə elanınızın bütün təfərrüatlarını qeyd edərək minlərlə fermer və alıcıya çatdırın.
-          </p>
         </div>
-        <button
-          onClick={onCancel}
-          className="text-xs font-bold text-gray-500 hover:text-gray-900 hidden sm:block"
-        >
+        <button onClick={onCancel} className="text-xs font-bold text-gray-500 hover:text-gray-900 hidden sm:block">
           Ləğv et ✕
         </button>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-8">
-        
-        {/* 1. Elan Növü Seçimi */}
-        <div className="p-5 sm:p-7 rounded-3xl bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-xs space-y-4">
-          <h3 className="font-black text-gray-900 text-sm sm:text-base flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">1</span>
-            <span>Elan Növünü Seçin</span>
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="space-y-6 text-xs">
+        {/* 1. Növ */}
+        <div className="p-5 rounded-3xl bg-white/90 border border-emerald-100 shadow-xs space-y-3">
+          <h3 className="font-black text-gray-900 text-sm">1. Elan Növü</h3>
+          <div className="grid grid-cols-2 gap-3">
             <div
               onClick={() => handleTypeSelect('sale')}
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                type === 'sale' ? 'border-emerald-600 bg-emerald-50/70 shadow-xs' : 'border-gray-200 hover:border-emerald-200'
-              }`}
+              className={`p-4 rounded-2xl border-2 cursor-pointer transition ${type === 'sale' ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200'}`}
             >
-              <div>
-                <span className="font-bold text-gray-900 text-sm block">🌱 Satış Elanı</span>
-                <p className="text-[11px] text-gray-500 mt-0.5">Məhsulu birbaşa satmaq üçün</p>
-              </div>
-              <input type="radio" checked={type === 'sale'} readOnly className="accent-emerald-600 w-4 h-4" />
+              <span className="font-bold text-gray-900 block">🌱 Satış Elanı</span>
             </div>
-
             <div
               onClick={() => handleTypeSelect('rent')}
-              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                type === 'rent' ? 'border-blue-600 bg-blue-50/70 shadow-xs' : 'border-gray-200 hover:border-blue-200'
-              }`}
+              className={`p-4 rounded-2xl border-2 cursor-pointer transition ${type === 'rent' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}`}
             >
-              <div>
-                <span className="font-bold text-gray-900 text-sm block">🚜 İcarə Elanı</span>
-                <p className="text-[11px] text-gray-500 mt-0.5">Texnika və ya torpaq sahəsini icarəyə vermək üçün</p>
-              </div>
-              <input type="radio" checked={type === 'rent'} readOnly className="accent-blue-600 w-4 h-4" />
+              <span className="font-bold text-gray-900 block">🚜 İcarə Elanı</span>
             </div>
           </div>
         </div>
 
-        {/* 2. Kateqoriya & Əsas Məlumatlar */}
-        <div className="p-5 sm:p-7 rounded-3xl bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-xs space-y-4">
-          <h3 className="font-black text-gray-900 text-sm sm:text-base flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">2</span>
-            <span>Kateqoriya və Məlumatlar</span>
-          </h3>
-
+        {/* 2. Məlumatlar & Subkateqoriya */}
+        <div className="p-5 rounded-3xl bg-white/90 border border-emerald-100 shadow-xs space-y-4">
+          <h3 className="font-black text-gray-900 text-sm">2. Kateqoriya və Məlumatlar</h3>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
-            {/* Category */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Kateqoriya *</label>
+              <label className="block font-bold text-gray-700 mb-1">Kateqoriya *</label>
               <select
                 value={category}
                 onChange={(e) => handleCategorySelect(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500"
+                className="w-full p-2.5 rounded-2xl border border-gray-200 font-bold text-xs"
               >
-                {CATEGORIES.filter(c => c.id !== 'all').map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
+                {categories.filter(c => c.id !== 'all').map(c => (
+                  <option key={c.id || c.name} value={c.name}>{c.name}</option>
                 ))}
               </select>
             </div>
 
-            {/* Region */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Məkan / Rayon *</label>
+              <label className="block font-bold text-gray-700 mb-1">Alt Kateqoriya (Subcategory)</label>
+              <select
+                value={subcategory}
+                onChange={(e) => setSubcategory(e.target.value)}
+                className="w-full p-2.5 rounded-2xl border border-gray-200 font-semibold text-xs"
+              >
+                <option value="">Alt kateqoriya seçin...</option>
+                {subcategoriesList.map((sub, idx) => (
+                  <option key={idx} value={sub}>{sub}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Məkan / Rayon *</label>
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500"
+                className="w-full p-2.5 rounded-2xl border border-gray-200 font-bold text-xs"
               >
-                {REGIONS.filter(r => r !== 'Hamısı').map(r => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
+                {regions
+                  .filter(r => r.name !== 'Hamısı')
+                  .map(r => (
+                    <option key={r.id || r.name} value={r.name}>{r.name}</option>
+                  ))}
               </select>
             </div>
 
-            {/* Title */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Elanın Başlığı *</label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Məs: Belarus MTZ-82.1 Traktoru və ya NPK 15-15-15 Gübrəsi"
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-semibold text-gray-900 outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* Price */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Qiymət (AZN) *</label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="Məs: 45"
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-semibold text-gray-900 outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* Unit */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Ölçü Vahidi *</label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500"
-              >
-                <option value="AZN">AZN (Ümumi Qiymət)</option>
-                <option value="AZN / kisə">AZN / kisə</option>
-                <option value="AZN / ədəd">AZN / ədəd</option>
-                <option value="AZN / kq">AZN / kq</option>
-                <option value="AZN / flakon">AZN / flakon</option>
-                <option value="AZN / gün">AZN / gün (İcarə)</option>
-                <option value="AZN / hektar">AZN / hektar</option>
-                <option value="AZN / hektar / il">AZN / hektar / il (İcarə)</option>
-              </select>
-            </div>
-
-            {/* Year */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">İstehsal / Buraxılış İli</label>
+              <label className="block font-bold text-gray-700 mb-1">İstehsal İli</label>
               <input
                 type="number"
                 min="1990"
                 max="2030"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-semibold text-gray-900 outline-none focus:border-emerald-500"
+                className="w-full p-2.5 rounded-2xl border border-gray-200 text-xs font-semibold"
               />
             </div>
 
-            {/* Image URL */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Şəkil URL-i</label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-semibold text-gray-900 outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* Description */}
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">Ətraflı Təsvir *</label>
+              <label className="block font-bold text-gray-700 mb-1">Elanın Başlığı *</label>
+              <input
+                type="text"
+                required
+                value={title}
+                onChange={(e) => { setTitle(e.target.value); if (errors.title) setErrors(prev => ({ ...prev, title: '' })); }}
+                placeholder="Məs: Belarus MTZ-82.1 Traktoru"
+                className={`w-full p-2.5 rounded-2xl border ${errors.title ? 'border-rose-500' : 'border-gray-200'} text-xs`}
+              />
+              {errors.title && <p className="text-[11px] text-rose-600 font-bold mt-1">⚠ {errors.title}</p>}
+            </div>
+
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Qiymət (AZN) *</label>
+              <input
+                type="number"
+                required
+                min="1"
+                value={price}
+                onChange={(e) => { setPrice(e.target.value); if (errors.price) setErrors(prev => ({ ...prev, price: '' })); }}
+                placeholder="45"
+                className={`w-full p-2.5 rounded-2xl border ${errors.price ? 'border-rose-500' : 'border-gray-200'} text-xs`}
+              />
+              {errors.price && <p className="text-[11px] text-rose-600 font-bold mt-1">⚠ {errors.price}</p>}
+            </div>
+
+            <div>
+              <label className="block font-bold text-gray-700 mb-1">Ölçü Vahidi *</label>
+              <select
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                className="w-full p-2.5 rounded-2xl border border-gray-200 font-bold text-xs"
+              >
+                <option value="AZN">AZN</option>
+                <option value="AZN / kisə">AZN / kisə</option>
+                <option value="AZN / ədəd">AZN / ədəd</option>
+                <option value="AZN / kq">AZN / kq</option>
+                <option value="AZN / flakon">AZN / flakon</option>
+                <option value="AZN / gün">AZN / gün</option>
+                <option value="AZN / hektar">AZN / hektar</option>
+                <option value="AZN / hektar / il">AZN / hektar / il</option>
+              </select>
+            </div>
+
+            {/* 3. Şəkil: Fayl və ya URL */}
+            <div className="sm:col-span-2 space-y-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-gray-700">Məhsul Şəkli *</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setImageUploadType('file')}
+                    className={`px-3 py-1 rounded-xl font-bold text-[11px] ${imageUploadType === 'file' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                  >
+                    📁 Fayldan Yüklə
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageUploadType('url')}
+                    className={`px-3 py-1 rounded-xl font-bold text-[11px] ${imageUploadType === 'url' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                  >
+                    🔗 URL Keçidi
+                  </button>
+                </div>
+              </div>
+
+              {imageUploadType === 'file' ? (
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full p-2.5 rounded-2xl border border-gray-200 text-xs bg-emerald-50/50"
+                />
+              ) : (
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full p-2.5 rounded-2xl border border-gray-200 text-xs"
+                />
+              )}
+
+              {(imageFilePreview || imageUrl) && (
+                <div className="mt-2 flex items-center gap-3 p-2 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+                  <img src={imageFilePreview || imageUrl} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
+                  <span className="font-bold text-emerald-950">✓ Şəkil hazırdır</span>
+                </div>
+              )}
+              {errors.image && <p className="text-[11px] text-rose-600 font-bold mt-1">⚠ {errors.image}</p>}
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block font-bold text-gray-700 mb-1">Ətraflı Təsvir *</label>
               <textarea
                 rows="4"
                 required
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Məhsulun vəziyyəti, çatdırılma və ya icarə şərtləri haqqında ətraflı məlumat yazın..."
-                className="w-full p-3 rounded-2xl bg-white border border-gray-200 text-xs font-medium text-gray-900 outline-none focus:border-emerald-500"
+                onChange={(e) => { setDescription(e.target.value); if (errors.description) setErrors(prev => ({ ...prev, description: '' })); }}
+                placeholder="Məhsul haqqında ətraflı məlumat..."
+                className={`w-full p-3 rounded-2xl border ${errors.description ? 'border-rose-500' : 'border-gray-200'} text-xs font-medium`}
               />
+              {errors.description && <p className="text-[11px] text-rose-600 font-bold mt-1">⚠ {errors.description}</p>}
             </div>
 
           </div>
         </div>
 
-        {/* 3. Dinamik Xüsusiyyətlər (Specifications) */}
-        <div className="p-5 sm:p-7 rounded-3xl bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-black text-gray-900 text-sm sm:text-base flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">3</span>
-              <span>Texniki Göstəricilər və Xüsusiyyətlər</span>
-            </h3>
-            <button
-              type="button"
-              onClick={handleAddFeature}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1"
-            >
-              + Xüsusiyyət əlavə et
-            </button>
+        {/* Göstəricilər */}
+        <div className="p-5 rounded-3xl bg-white/90 border border-emerald-100 shadow-xs space-y-3">
+          <div className="flex justify-between items-center">
+            <h3 className="font-black text-gray-900 text-sm">3. Göstəricilər</h3>
+            <button type="button" onClick={handleAddFeature} className="font-bold text-emerald-700">+ Əlavə et</button>
           </div>
-
-          <div className="space-y-2">
-            {features.map((feat, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={feat.key}
-                  onChange={(e) => handleFeatureChange(idx, 'key', e.target.value)}
-                  placeholder="Parametr (məs: Gücü, Tərkibi, Sahə)"
-                  className="flex-1 px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-medium outline-none"
-                />
-                <input
-                  type="text"
-                  value={feat.value}
-                  onChange={(e) => handleFeatureChange(idx, 'value', e.target.value)}
-                  placeholder="Dəyər (məs: 81 a.g., 50 kq, 4 Hektar)"
-                  className="flex-1 px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-medium outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveFeature(idx)}
-                  className="p-2 text-rose-500 hover:text-rose-700 font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
+          {features.map((feat, idx) => (
+            <div key={idx} className="flex gap-2">
+              <input value={feat.key} onChange={e => handleFeatureChange(idx, 'key', e.target.value)} placeholder="Parametr" className="flex-1 p-2 rounded-xl border border-gray-200 text-xs" />
+              <input value={feat.value} onChange={e => handleFeatureChange(idx, 'value', e.target.value)} placeholder="Dəyər" className="flex-1 p-2 rounded-xl border border-gray-200 text-xs" />
+              <button type="button" onClick={() => handleRemoveFeature(idx)} className="p-2 text-rose-500 font-bold">✕</button>
+            </div>
+          ))}
         </div>
 
-        {/* 4. Satıcı Əlaqə Məlumatları */}
-        <div className="p-5 sm:p-7 rounded-3xl bg-white/90 backdrop-blur-xl border border-emerald-100 shadow-xs space-y-4">
-          <h3 className="font-black text-gray-900 text-sm sm:text-base flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">4</span>
-            <span>Əlaqə Məlumatları</span>
-          </h3>
-
+        {/* Əlaqə */}
+        <div className="p-5 rounded-3xl bg-white/90 border border-emerald-100 shadow-xs space-y-4">
+          <h3 className="font-black text-gray-900 text-sm">4. Satıcı Əlaqə</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Satıcı / Təsərrüfat Adı</label>
-              <input
-                type="text"
-                required
-                value={sellerName}
-                onChange={(e) => setSellerName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-semibold outline-none"
-              />
+              <label className="block font-bold text-gray-700 mb-1">Satıcı Adı *</label>
+              <input type="text" required value={sellerName} onChange={(e) => setSellerName(e.target.value)} className="w-full p-2.5 rounded-2xl border border-gray-200 text-xs font-semibold" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Telefon Nömrəsi</label>
-              <input
-                type="tel"
-                required
-                value={sellerPhone}
-                onChange={(e) => setSellerPhone(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-semibold outline-none"
-              />
+              <label className="block font-bold text-gray-700 mb-1">Telefon *</label>
+              <input type="tel" required value={sellerPhone} onChange={(e) => { setSellerPhone(e.target.value); if (errors.sellerPhone) setErrors(prev => ({ ...prev, sellerPhone: '' })); }} className={`w-full p-2.5 rounded-2xl border ${errors.sellerPhone ? 'border-rose-500' : 'border-gray-200'} text-xs font-semibold`} />
+              {errors.sellerPhone && <p className="text-[11px] text-rose-600 font-bold mt-1">⚠ {errors.sellerPhone}</p>}
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">WhatsApp Nömrəsi</label>
-              <input
-                type="text"
-                required
-                value={sellerWhatsapp}
-                onChange={(e) => setSellerWhatsapp(e.target.value)}
-                placeholder="99450xxxxxxx"
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-gray-200 text-xs font-semibold outline-none"
-              />
+              <label className="block font-bold text-gray-700 mb-1">WhatsApp</label>
+              <input type="text" value={sellerWhatsapp} onChange={(e) => setSellerWhatsapp(e.target.value)} placeholder="99450xxxxxxx" className="w-full p-2.5 rounded-2xl border border-gray-200 text-xs font-semibold" />
             </div>
           </div>
         </div>
 
-        {/* Submit */}
         <div className="flex gap-3">
           <button
             type="submit"
-            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 text-white font-black text-sm shadow-xl shadow-emerald-600/25 transition active:scale-[0.99]"
+            disabled={submitting}
+            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 text-white font-black text-sm shadow-xl"
           >
-            Elanı Dərhal Paylaş ✓
+            {submitting ? 'REST API-yə Göndərilir...' : 'Elanı Dərhal Paylaş (POST) ✓'}
           </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-4 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs"
-          >
-            Ləğv Et
-          </button>
+          <button type="button" onClick={onCancel} className="px-6 py-4 rounded-2xl bg-gray-100 font-bold text-xs">Ləğv Et</button>
         </div>
 
       </form>
-
     </div>
   );
 }
