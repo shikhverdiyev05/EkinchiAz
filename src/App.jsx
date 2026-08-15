@@ -28,8 +28,19 @@ import {
   createBookingApi,
   sendContactMessageApi,
   getUserContactsApi,
+  syncCartToFirestore,
+  syncFavoritesToFirestore,
+  getUserCartAndFavorites,
 } from './services/apiService';
-import { getStoredCurrentUser, setStoredCurrentUser, logoutUser } from './services/storageService';
+import { 
+  getStoredCurrentUser, 
+  setStoredCurrentUser, 
+  logoutUser,
+  getStoredCart,
+  setStoredCart,
+  getStoredFavorites,
+  setStoredFavorites
+} from './services/storageService';
 
 export default function App() {
   const [activePage, setActivePage] = useState(() => {
@@ -53,14 +64,14 @@ export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
 
-  // Cart & Bookings
-  const [cartItems, setCartItems] = useState([]);
+  // Cart & Bookings (localStorage persistent)
+  const [cartItems, setCartItems] = useState(() => getStoredCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [rentalBookings, setRentalBookings] = useState([]);
   const [orders, setOrders] = useState([]);
 
-  // Favorites
-  const [favorites, setFavorites] = useState([]);
+  // Favorites (localStorage persistent)
+  const [favorites, setFavorites] = useState(() => getStoredFavorites());
 
   // Modals
   const [rentModalProduct, setRentModalProduct] = useState(null);
@@ -69,7 +80,23 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState(null);
   const [initialListingFilters, setInitialListingFilters] = useState({});
 
-  // REST API-dən məhsul və kateqoriyaları çəkmək (GET)
+  // Səbət dəyişəndə localStorage və Firestore ilə sinxronlaşdır
+  useEffect(() => {
+    setStoredCart(cartItems);
+    if (currentUser?.id) {
+      syncCartToFirestore(currentUser.id, cartItems);
+    }
+  }, [cartItems, currentUser?.id]);
+
+  // Sevimlilər dəyişəndə localStorage və Firestore ilə sinxronlaşdır
+  useEffect(() => {
+    setStoredFavorites(favorites);
+    if (currentUser?.id) {
+      syncFavoritesToFirestore(currentUser.id, favorites);
+    }
+  }, [favorites, currentUser?.id]);
+
+  // Firestore-dan ilkin məhsul, kateqoriya və regionları çəkmək (GET)
   useEffect(() => {
     let isMounted = true;
 
@@ -121,7 +148,30 @@ export default function App() {
     };
   }, []);
 
-  // Daxil olmuş istifadəçinin məlumatlarını (sifarişlər, icarələr) Firestore-dan çək
+  // Daxil olmuş istifadəçinin məlumatlarını (sifarişlər, icarələr, səbət) Firestore-dan çək
+  const loadUserData = async (user) => {
+    if (!user?.id) return;
+    try {
+      const [userOrders, userBookings, userCloudData] = await Promise.all([
+        getUserOrdersApi(user.id),
+        getUserBookingsApi(user.id),
+        getUserCartAndFavorites(user.id)
+      ]);
+      setOrders(Array.isArray(userOrders) ? userOrders : []);
+      setRentalBookings(Array.isArray(userBookings) ? userBookings : []);
+      
+      // Əgər Firestore-da bulud səbəti/sevimliləri varsa və yerli boşdursa, yüklə
+      if (userCloudData?.cart && userCloudData.cart.length > 0 && cartItems.length === 0) {
+        setCartItems(userCloudData.cart);
+      }
+      if (userCloudData?.favorites && userCloudData.favorites.length > 0 && favorites.length === 0) {
+        setFavorites(userCloudData.favorites);
+      }
+    } catch (err) {
+      console.error('İstifadəçi məlumatları yüklənmədi:', err);
+    }
+  };
+
   useEffect(() => {
     if (currentUser?.id) {
       loadUserData(currentUser);
@@ -149,25 +199,10 @@ export default function App() {
     setAuthModalOpen(true);
   };
 
-  // İstifadəçiyə aid məlumatları Firestore-dan yüklə
-  const loadUserData = async (user) => {
-    if (!user?.id) return;
-    try {
-      const [userOrders, userBookings] = await Promise.all([
-        getUserOrdersApi(user.id),
-        getUserBookingsApi(user.id),
-      ]);
-      setOrders(Array.isArray(userOrders) ? userOrders : []);
-      setRentalBookings(Array.isArray(userBookings) ? userBookings : []);
-    } catch (err) {
-      console.error('İstifadəçi məlumatları yüklənmədi:', err);
-    }
-  };
-
   const handleAuthSuccess = (user, message) => {
     setCurrentUser(user);
     setStoredCurrentUser(user);
-    loadUserData(user); // sifarişlər və icarələri yüklə
+    loadUserData(user);
     showToast(message || 'Giriş uğurla edildi!');
   };
 
@@ -176,8 +211,6 @@ export default function App() {
     setCurrentUser(null);
     setOrders([]);
     setRentalBookings([]);
-    setCartItems([]);
-    setFavorites([]);
     navigateTo('home');
     showToast('Hesabdan çıxış edildi');
   };
@@ -275,14 +308,13 @@ export default function App() {
   const cartCount = (Array.isArray(cartItems) ? cartItems : []).reduce((acc, item) => acc + (item.quantity || 1), 0);
   const favoriteProducts = (Array.isArray(products) ? products : []).filter(p => (Array.isArray(favorites) ? favorites : []).includes(p?.id));
 
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50/60 via-teal-50/30 to-green-100/40 text-gray-800 font-sans selection:bg-emerald-600 selection:text-white">
       
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 bg-emerald-950 text-white px-4 sm:px-5 py-3 rounded-2xl shadow-2xl border border-emerald-700/80 text-xs sm:text-sm font-bold flex items-center gap-2.5 animate-fadeIn">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl bg-gray-900/90 backdrop-blur-md text-white text-xs sm:text-sm font-bold shadow-2xl flex items-center gap-2 animate-slideUp border border-gray-700/50">
+          <span className="text-emerald-400">✓</span>
           <span>{toastMessage}</span>
         </div>
       )}
@@ -290,37 +322,29 @@ export default function App() {
       {/* Navbar */}
       <Navbar
         activePage={activePage}
-        setActivePage={(p) => navigateTo(p)}
+        setActivePage={(page) => navigateTo(page)}
         cartCount={cartCount}
         openCart={() => setIsCartOpen(true)}
         currentUser={currentUser}
-        openAuthModal={() => {
-          setAuthMessage('');
-          setAuthModalOpen(true);
-        }}
-        openProfile={() => {
-          if (!currentUser) {
-            handleRequireAuth('Profilə baxmaq üçün daxil olun');
-            return;
-          }
-          navigateTo('profile');
-        }}
+        openAuthModal={() => setAuthModalOpen(true)}
+        openProfile={() => navigateTo('profile')}
         onAddListingClick={handleAddListingClick}
       />
 
-      {/* Əsas Səhifələr */}
-      <main className="flex-1">
+      {/* Main Content Pages */}
+      <main className="flex-grow">
         {activePage === 'home' && (
           <HomePage
-            products={products || []}
-            categories={categories || []}
+            products={products}
+            categories={categories}
+            regions={regions}
             onNavigateListings={handleNavigateListings}
             onSelectCategory={(catName) => handleNavigateListings({ category: catName })}
             onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
             onOpenRentModal={handleOpenRentModal}
             onOpenContactModal={handleOpenContactModal}
-            favorites={favorites || []}
+            favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
             onRequireAuth={handleRequireAuth}
@@ -329,15 +353,15 @@ export default function App() {
 
         {activePage === 'listings' && (
           <ListingsPage
-            products={products || []}
-            categories={categories || []}
-            regions={regions || []}
+            products={products}
+            categories={categories}
+            regions={regions}
             initialFilters={initialListingFilters}
             onViewDetails={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
             onOpenRentModal={handleOpenRentModal}
             onOpenContactModal={handleOpenContactModal}
-            favorites={favorites || []}
+            favorites={favorites}
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
             onRequireAuth={handleRequireAuth}
@@ -346,14 +370,14 @@ export default function App() {
 
         {activePage === 'product-detail' && (
           <ProductDetailPage
-            product={selectedProduct || products[0]}
-            allProducts={products || []}
+            product={selectedProduct}
+            allProducts={products}
             onBack={() => navigateTo('listings')}
             onNavigateProduct={handleOpenProductDetail}
             onAddToCart={handleAddToCart}
             onOpenRentModal={handleOpenRentModal}
             onOpenContactModal={handleOpenContactModal}
-            isFavorite={selectedProduct ? (favorites || []).includes(selectedProduct.id) : false}
+            isFavorite={(Array.isArray(favorites) ? favorites : []).includes(selectedProduct?.id)}
             onToggleFavorite={handleToggleFavorite}
             currentUser={currentUser}
             onRequireAuth={handleRequireAuth}
@@ -387,6 +411,14 @@ export default function App() {
             currentUser={currentUser}
             onRequireAuth={handleRequireAuth}
             onAddNewListing={handleAddListingClick}
+            onUpdateUser={(updated) => {
+              setCurrentUser(updated);
+              setStoredCurrentUser(updated);
+            }}
+            onDeleteListing={(delId) => {
+              setProducts(prev => prev.filter(p => p.id !== delId));
+              showToast('Elanınız uğurla silindi');
+            }}
           />
         )}
 

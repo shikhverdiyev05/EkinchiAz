@@ -2,8 +2,9 @@ import HeroSection from '../components/HeroSection';
 import ProductCard from '../components/ProductCard';
 
 export default function HomePage({
-  products,
+  products = [],
   categories = [],
+  regions = [],
   onNavigateListings,
   onSelectCategory,
   onViewDetails,
@@ -23,6 +24,9 @@ export default function HomePage({
       
       {/* Hero Section */}
       <HeroSection 
+        products={products}
+        categories={categories}
+        regions={regions}
         onSearch={(term) => onNavigateListings({ search: term })}
         onSelectCategory={onSelectCategory}
         onNavigateListings={onNavigateListings}

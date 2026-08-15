@@ -1,7 +1,14 @@
 /* eslint-disable no-unused-vars */
-import  { useState } from 'react';
+import { useState } from 'react';
 
-export default function HeroSection({ onSearch, onSelectCategory, onNavigateListings }) {
+export default function HeroSection({ 
+  products = [], 
+  categories = [], 
+  regions = [], 
+  onSearch, 
+  onSelectCategory, 
+  onNavigateListings 
+}) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleSearchSubmit = (e) => {
@@ -9,6 +16,17 @@ export default function HeroSection({ onSearch, onSelectCategory, onNavigateList
     if (onSearch) onSearch(searchTerm);
     if (onNavigateListings) onNavigateListings();
   };
+
+  // API / Firestore-dan gələn real statistikalar
+  const totalProducts = products.length;
+  const totalCategories = categories.filter(c => c.id !== 'all').length;
+  const saleCount = products.filter(p => p.type === 'sale').length;
+  const rentCount = products.filter(p => p.type === 'rent').length;
+  
+  // Regionların sayı
+  const totalRegions = Array.isArray(regions) && regions.length > 0 
+    ? regions.filter(r => (typeof r === 'string' ? r : r?.name) !== 'Hamısı').length 
+    : 40;
 
   return (
     <section className="relative overflow-hidden pt-4 pb-12 sm:pt-12 sm:pb-20">
@@ -87,27 +105,41 @@ export default function HeroSection({ onSearch, onSelectCategory, onNavigateList
 
         </div>
 
-        {/* Statistika Bloku (4-lü Responsive Grid) */}
+        {/* Dinamik Statistika Bloku (API Datalarına Əsasən) */}
         <div className="mt-10 sm:mt-14 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs">
-            <p className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tight">500+</p>
+          
+          {/* 1. Aktiv Elanlar */}
+          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs hover:border-emerald-300 transition group">
+            <p className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tight group-hover:scale-105 transition-transform">
+              {totalProducts > 0 ? `${totalProducts}` : '0'}
+            </p>
             <p className="text-[10px] sm:text-xs font-semibold text-gray-500 mt-0.5">Aktiv Aqrar Elan</p>
           </div>
 
-          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs">
-            <p className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tight">1,200+</p>
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 mt-0.5">Qeydiyyatlı Fermer</p>
+          {/* 2. Kateqoriyalar */}
+          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs hover:border-emerald-300 transition group">
+            <p className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tight group-hover:scale-105 transition-transform">
+              {totalCategories > 0 ? `${totalCategories}` : '7'}
+            </p>
+            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 mt-0.5">Aqrar Kateqoriya</p>
           </div>
 
-          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs">
-            <p className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tight">100%</p>
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 mt-0.5">Yoxlanılmış Satıcılar</p>
+          {/* 3. Satış və İcarə */}
+          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs hover:border-emerald-300 transition group">
+            <p className="text-lg sm:text-2xl font-black text-emerald-800 tracking-tight group-hover:scale-105 transition-transform">
+              {saleCount} Satış • {rentCount} İcarə
+            </p>
+            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 mt-0.5">Elan Növləri</p>
           </div>
 
-          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs">
-            <p className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tight">60+ Rayon</p>
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 mt-0.5">Bütün Azərbaycan</p>
+          {/* 4. Əhatə Olunan Rayonlar */}
+          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100/90 text-center shadow-xs hover:border-emerald-300 transition group">
+            <p className="text-xl sm:text-3xl font-black text-emerald-800 tracking-tight group-hover:scale-105 transition-transform">
+              {totalRegions > 0 ? `${totalRegions}+` : '60+'}
+            </p>
+            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 mt-0.5">Region & Rayon</p>
           </div>
+
         </div>
 
       </div>

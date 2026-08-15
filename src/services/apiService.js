@@ -1,8 +1,7 @@
 /* eslint-disable no-unused-vars */
 // ─────────────────────────────────────────────────────────────────────────
 // Firebase Firestore Xidmətləri
-// Bütün GET / POST əməliyyatları Firestore vasitəsilə həyata keçirilir.
-// Köhnə aqro-server.vercel.app/api artıq istifadə edilmir!
+// Bütün GET / POST / UPDATE əməliyyatları Firestore vasitəsilə həyata keçirilir.
 // ─────────────────────────────────────────────────────────────────────────
 
 import {
@@ -11,6 +10,9 @@ import {
   getDoc,
   addDoc,
   doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -30,6 +32,8 @@ const COL = {
   ORDERS:     'orders',
   BOOKINGS:   'bookings',
   CONTACTS:   'contacts',
+  CARTS:      'user_carts',
+  FAVORITES:  'user_favorites',
   FAQ:        'faq',
   ABOUT:      'about',
   POSTS:      'posts',
@@ -47,6 +51,7 @@ export async function getProductsApi() {
 
 /** GET — Bir istifadəçinin öz məhsulları */
 export async function getUserProductsApi(userId) {
+  if (!userId) return [];
   const q = query(
     collection(db, COL.PRODUCTS),
     where('userId', '==', userId)
@@ -68,8 +73,14 @@ export async function createProductApi(productData) {
   return normalizeProduct({ id: ref.id, ...payload });
 }
 
+/** DELETE — Məhsulu Firestore-dan silir */
+export async function deleteProductApi(productId) {
+  if (!productId) return;
+  await deleteDoc(doc(db, COL.PRODUCTS, productId));
+}
+
 // ════════════════════════════════
-// 2. USERS — Login & Register
+// 2. USERS — Login, Register & Edit Profile
 // ════════════════════════════════
 
 /**
@@ -128,6 +139,7 @@ export async function registerUserApi(userData) {
     userType:   userData.userType || 'farmer',
     role:       userData.userType || 'farmer',
     region:     userData.region  || 'Bakı',
+    address:    userData.address || '',
     balance:    '0.00 AZN',
     joinedDate: new Date().toLocaleDateString('az-AZ', { month: 'long', year: 'numeric' }),
     avatar:     (userData.name.trim()[0] || 'U').toUpperCase(),
@@ -144,8 +156,29 @@ export async function registerUserApi(userData) {
   return { success: true, user: newUser, token };
 }
 
+/**
+ * PROFİLİ YENİLƏMƏK: Ad, telefon, unvan, profil şəkli (avatar) və s.
+ */
+export async function updateUserProfileApi(userId, updateData) {
+  if (!userId) throw new Error('User ID tələb olunur');
+
+  const userDocRef = doc(db, COL.USERS, userId);
+  await updateDoc(userDocRef, {
+    ...updateData,
+    updatedAt: serverTimestamp(),
+  });
+
+  // Yenilənmiş məlumatları götür
+  const updatedSnap = await getDoc(userDocRef);
+  const updatedUser = { id: updatedSnap.id, ...updatedSnap.data() };
+
+  // localStorage-ı da dərhal yenilə
+  localStorage.setItem('ekinchi_user', JSON.stringify(updatedUser));
+  return updatedUser;
+}
+
 // ════════════════════════════════
-// 3. CATEGORIES
+// 3. CATEGORIES & REGIONS
 // ════════════════════════════════
 
 export async function getCategoriesApi() {
@@ -153,21 +186,18 @@ export async function getCategoriesApi() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-// ════════════════════════════════
-// 4. REGIONS
-// ════════════════════════════════
-
 export async function getRegionsApi() {
   const snap = await getDocs(collection(db, COL.REGIONS));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 // ════════════════════════════════
-// 5. ORDERS
+// 4. ORDERS & BOOKINGS
 // ════════════════════════════════
 
 /** GET — İstifadəçinin sifarişlərini gətirir */
 export async function getUserOrdersApi(userId) {
+  if (!userId) return [];
   const q = query(
     collection(db, COL.ORDERS),
     where('userId', '==', userId)
@@ -187,12 +217,9 @@ export async function createOrderApi(orderData) {
   return { id: ref.id, ...payload };
 }
 
-// ════════════════════════════════
-// 6. BOOKINGS (İcarə Sifarişləri)
-// ════════════════════════════════
-
 /** GET — İstifadəçinin icarə sifarişlərini gətirir */
 export async function getUserBookingsApi(userId) {
+  if (!userId) return [];
   const q = query(
     collection(db, COL.BOOKINGS),
     where('userId', '==', userId)
@@ -213,10 +240,9 @@ export async function createBookingApi(bookingData) {
 }
 
 // ════════════════════════════════
-// 7. CONTACTS (Əlaqə Mesajları)
+// 5. CONTACTS & INQUIRIES
 // ════════════════════════════════
 
-/** POST — Satıcıya mesaj göndərmə Firestore-a yazılır */
 export async function sendContactMessageApi(messageData) {
   const payload = {
     ...messageData,
@@ -226,8 +252,8 @@ export async function sendContactMessageApi(messageData) {
   return { id: ref.id, ...payload };
 }
 
-/** GET — İstifadəçinin əlaqə tarixçəsini gətirir */
 export async function getUserContactsApi(userId) {
+  if (!userId) return [];
   const q = query(
     collection(db, COL.CONTACTS),
     where('senderId', '==', userId)
@@ -237,7 +263,51 @@ export async function getUserContactsApi(userId) {
 }
 
 // ════════════════════════════════
-// 8. STATİK SƏHİFƏLƏR
+// 6. CART & FAVORITES SYNC (Firestore)
+// ════════════════════════════════
+
+/** İstifadəçinin səbətini Firestore ilə sinxronlaşdırır */
+export async function syncCartToFirestore(userId, cartItems) {
+  if (!userId) return;
+  try {
+    const docRef = doc(db, COL.CARTS, userId);
+    await setDoc(docRef, { items: cartItems || [], updatedAt: serverTimestamp() }, { merge: true });
+  } catch (err) {
+    console.error('Cart Firestore sync error:', err);
+  }
+}
+
+/** İstifadəçinin sevimlilərini Firestore ilə sinxronlaşdırır */
+export async function syncFavoritesToFirestore(userId, favoriteIds) {
+  if (!userId) return;
+  try {
+    const docRef = doc(db, COL.FAVORITES, userId);
+    await setDoc(docRef, { favorites: favoriteIds || [], updatedAt: serverTimestamp() }, { merge: true });
+  } catch (err) {
+    console.error('Favorites Firestore sync error:', err);
+  }
+}
+
+/** Daxil olmuş istifadəçinin Firestore-dakı səbət və sevimlilərini oxuyur */
+export async function getUserCartAndFavorites(userId) {
+  if (!userId) return { cart: [], favorites: [] };
+  try {
+    const [cartSnap, favSnap] = await Promise.all([
+      getDoc(doc(db, COL.CARTS, userId)),
+      getDoc(doc(db, COL.FAVORITES, userId)),
+    ]);
+    return {
+      cart: cartSnap.exists() ? (cartSnap.data()?.items || []) : [],
+      favorites: favSnap.exists() ? (favSnap.data()?.favorites || []) : [],
+    };
+  } catch (err) {
+    console.error('getUserCartAndFavorites error:', err);
+    return { cart: [], favorites: [] };
+  }
+}
+
+// ════════════════════════════════
+// 7. STATİK SƏHİFƏLƏR
 // ════════════════════════════════
 
 export async function getAboutApi() {

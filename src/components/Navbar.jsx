@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Navbar({ 
   activePage, 
@@ -11,17 +11,78 @@ export default function Navbar({
   onAddListingClick
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [showBottomBar, setShowBottomBar] = useState(true);
+  const [isNearFooter, setIsNearFooter] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    let prevY = typeof window !== 'undefined' ? window.scrollY : 0;
+
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      const diff = currentY - prevY;
+
+      // Footere çatıb-çatmadığını yoxla (aşağıdan 320px məsafə)
+      const nearBottom = currentY + windowHeight >= docHeight - 320;
+      setIsNearFooter(nearBottom);
+
+      // Back to top düyməsi 300px-dən sonra görünür
+      setShowBackToTop(currentY > 300);
+
+      // Footere çatıbsa -> HƏR İKİSİ GİZLƏNSİN
+      if (nearBottom) {
+        setShowNavbar(false);
+        setShowBottomBar(false);
+        setMobileMenuOpen(false);
+      } 
+      // Səhifənin ən yuxarısında hər ikisi görünür
+      else if (currentY < 20) {
+        setShowNavbar(true);
+        setShowBottomBar(true);
+      } 
+      // Aşağı scroll olunanda: Navbar gizlənir, BottomBar görünür
+      else if (diff > 8) {
+        setShowNavbar(false);
+        setShowBottomBar(true);
+        setMobileMenuOpen(false);
+      } 
+      // Yuxarı scroll olunanda: Navbar görünür, BottomBar gizlənir
+      else if (diff < -8) {
+        setShowNavbar(true);
+        setShowBottomBar(false);
+      }
+
+      prevY = currentY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleNavClick = (page) => {
     setActivePage(page);
     setMobileMenuOpen(false);
+    setShowNavbar(true);
+    setShowBottomBar(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <>
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 w-full backdrop-blur-2xl bg-white/85 border-b border-emerald-100/80 shadow-xs transition-all duration-300">
+      {/* Top Header Placeholder */}
+      <div className="h-16 sm:h-20" />
+
+      {/* Top Header (Aşağı scroll-da və Footer-də gizlənir, Yuxarı scroll-da açılır) */}
+      <header className={`fixed top-0 left-0 right-0 z-40 w-full backdrop-blur-2xl bg-white/90 border-b border-emerald-100/80 shadow-xs transition-transform duration-300 ${
+        showNavbar && !isNearFooter ? 'translate-y-0' : '-translate-y-full'
+      }`}>
         <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             
@@ -104,9 +165,17 @@ export default function Navbar({
               {/* User / Login Button */}
               {currentUser ? (
                 <div onClick={openProfile} className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-2xl bg-white/90 border border-emerald-200 cursor-pointer shadow-xs hover:border-emerald-400 transition">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                    {currentUser.name ? currentUser.name[0].toUpperCase() : 'U'}
-                  </div>
+                  {currentUser.avatar && currentUser.avatar.startsWith('http') ? (
+                    <img
+                      src={currentUser.avatar}
+                      alt={currentUser.name}
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-xs ring-1 ring-emerald-300"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                      {currentUser.name ? currentUser.name[0].toUpperCase() : 'U'}
+                    </div>
+                  )}
                   <div className="hidden sm:block text-left">
                     <p className="text-xs font-bold text-gray-900 leading-none truncate max-w-[100px]">{currentUser.name}</p>
                     <span className="text-[10px] text-emerald-700 font-semibold">Profil</span>
@@ -151,9 +220,11 @@ export default function Navbar({
         </div>
       </header>
 
-      {/* Mobile App-like Bottom Navigation Dock */}
-      <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40">
-        <div className="bg-white/90 backdrop-blur-2xl border border-emerald-100/90 shadow-2xl rounded-3xl p-1.5 flex items-center justify-around">
+      {/* Mobile App-like Bottom Navigation Dock (Yuxarı scroll-da və Footer-də gizlənir, Aşağı scroll-da görünür) */}
+      <div className={`lg:hidden fixed bottom-3 left-3 right-3 z-40 transition-all duration-300 transform ${
+        showBottomBar && !isNearFooter ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'
+      }`}>
+        <div className="bg-white/95 backdrop-blur-2xl border border-emerald-100/90 shadow-2xl rounded-3xl p-1.5 flex items-center justify-around">
           <button onClick={() => handleNavClick('home')} className={`flex flex-col items-center py-1 px-2.5 rounded-2xl transition ${activePage === 'home' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500'}`}>
             <span className="text-base">🏡</span>
             <span className="text-[10px] font-bold mt-0.5">Ana Səhifə</span>
@@ -165,7 +236,7 @@ export default function Navbar({
           </button>
 
           {/* Plus Add Listing */}
-          <button onClick={onAddListingClick} className="flex flex-col items-center py-1 px-2.5 rounded-2xl bg-amber-500 text-white shadow-md scale-105">
+          <button onClick={onAddListingClick} className="flex flex-col items-center py-1 px-2.5 rounded-2xl bg-amber-500 text-white shadow-md scale-105 active:scale-95 transition">
             <span className="text-base font-black">➕</span>
             <span className="text-[9px] font-black mt-0.5">Elan Ver</span>
           </button>
@@ -178,10 +249,23 @@ export default function Navbar({
 
           <button onClick={() => currentUser ? handleNavClick('profile') : openAuthModal()} className={`flex flex-col items-center py-1 px-2.5 rounded-2xl transition ${activePage === 'profile' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500'}`}>
             <span className="text-base">👤</span>
-            <span className="text-[10px] font-bold mt-0.5">{currentUser ? 'Profil' : 'Giriş'}</span>
+            <span className="text-[10px] font-bold mt-0.5">Profil</span>
           </button>
         </div>
       </div>
+
+      {/* Floating Return to Top Button (Sağ küncdə, footerdəki yazılara mane olmayacaq şəkildə) */}
+      <button
+        onClick={scrollToTop}
+        title="Yuxarı Qayıt"
+        className={`fixed bottom-6 right-5 sm:right-8 z-50 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 text-white shadow-2xl shadow-emerald-950/30 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group ${
+          showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0 pointer-events-none'
+        }`}
+      >
+        <svg className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </button>
     </>
   );
 }
