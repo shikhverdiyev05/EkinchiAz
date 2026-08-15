@@ -81,8 +81,8 @@ export default function ProductCard({
           </div>
 
           <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-[11px] text-white font-medium pointer-events-none">
-            <span className="backdrop-blur-md bg-black/40 px-2 py-0.5 rounded-lg">📍 {product.location}</span>
-            <span className="backdrop-blur-md bg-black/40 px-2 py-0.5 rounded-lg">İl: {product.year}</span>
+            <span className="backdrop-blur-md bg-black/40 px-2 py-0.5 rounded-lg">📍 {product.location || 'Azərbaycan'}</span>
+            <span className="backdrop-blur-md bg-black/40 px-2 py-0.5 rounded-lg">İl: {product.year || 2024}</span>
           </div>
         </div>
 
@@ -106,7 +106,7 @@ export default function ProductCard({
           <div>
             <span className="text-[9px] text-gray-400 font-bold uppercase block">{isRent ? 'İcarə haqqı' : 'Qiymət'}</span>
             <span className="text-base sm:text-lg font-black text-emerald-950">
-              {product.price.toLocaleString()} <span className="text-xs font-bold text-emerald-700">{product.unit}</span>
+              {(Number(product.price) || 0).toLocaleString()} <span className="text-xs font-bold text-emerald-700">{product.unit || 'AZN'}</span>
             </span>
           </div>
 

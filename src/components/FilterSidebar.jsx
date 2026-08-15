@@ -124,11 +124,16 @@ export default function FilterSidebar({
           onChange={(e) => setSelectedRegion(e.target.value)}
           className="w-full px-3 py-2 sm:py-2.5 rounded-2xl bg-white border border-emerald-100 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500"
         >
-          {activeRegions.map((reg) => (
-            <option key={reg} value={reg === 'Hamısı' ? 'all' : reg}>
-              {reg}
-            </option>
-          ))}
+          <option value="all">Hamısı</option>
+          {activeRegions.map((reg, idx) => {
+            const regName = typeof reg === 'string' ? reg : reg.name || reg.id;
+            if (!regName || regName === 'Hamısı') return null;
+            return (
+              <option key={reg.id || regName || idx} value={regName}>
+                {regName}
+              </option>
+            );
+          })}
         </select>
       </div>
 

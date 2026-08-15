@@ -222,10 +222,10 @@ export default function ProductDetailPage({
               </span>
               <div className="flex items-baseline gap-1.5 mt-0.5">
                 <span className="text-3xl sm:text-4xl font-black text-emerald-950">
-                  {product.price.toLocaleString()}
+                  {(Number(product.price) || 0).toLocaleString()}
                 </span>
                 <span className="text-sm sm:text-base font-bold text-emerald-700">
-                  {product.unit}
+                  {product.unit || 'AZN'}
                 </span>
               </div>
             </div>

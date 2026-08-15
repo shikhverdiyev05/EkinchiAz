@@ -17,12 +17,17 @@ import AddListingPage from './pages/AddListingPage';
 import ProfilePage from './pages/ProfilePage';
 import { AboutPage, FaqPage, ContactPage, SocialFeedPage } from './pages/StaticPages';
 
-// REST API Servisi
+// Firestore Xidmətləri
 import { 
   getProductsApi, 
   getCategoriesApi,
   getRegionsApi,
-  createProductApi 
+  getUserOrdersApi,
+  getUserBookingsApi,
+  createOrderApi,
+  createBookingApi,
+  sendContactMessageApi,
+  getUserContactsApi,
 } from './services/apiService';
 import { getStoredCurrentUser, setStoredCurrentUser, logoutUser } from './services/storageService';
 
@@ -116,6 +121,13 @@ export default function App() {
     };
   }, []);
 
+  // Daxil olmuş istifadəçinin məlumatlarını (sifarişlər, icarələr) Firestore-dan çək
+  useEffect(() => {
+    if (currentUser?.id) {
+      loadUserData(currentUser);
+    }
+  }, [currentUser?.id]);
+
   const navigateTo = (page, param = null) => {
     setActivePage(page);
     if (page === 'product-detail' && param) {
@@ -137,15 +149,35 @@ export default function App() {
     setAuthModalOpen(true);
   };
 
+  // İstifadəçiyə aid məlumatları Firestore-dan yüklə
+  const loadUserData = async (user) => {
+    if (!user?.id) return;
+    try {
+      const [userOrders, userBookings] = await Promise.all([
+        getUserOrdersApi(user.id),
+        getUserBookingsApi(user.id),
+      ]);
+      setOrders(Array.isArray(userOrders) ? userOrders : []);
+      setRentalBookings(Array.isArray(userBookings) ? userBookings : []);
+    } catch (err) {
+      console.error('İstifadəçi məlumatları yüklənmədi:', err);
+    }
+  };
+
   const handleAuthSuccess = (user, message) => {
     setCurrentUser(user);
     setStoredCurrentUser(user);
+    loadUserData(user); // sifarişlər və icarələri yüklə
     showToast(message || 'Giriş uğurla edildi!');
   };
 
   const handleLogout = () => {
     logoutUser();
     setCurrentUser(null);
+    setOrders([]);
+    setRentalBookings([]);
+    setCartItems([]);
+    setFavorites([]);
     navigateTo('home');
     showToast('Hesabdan çıxış edildi');
   };
@@ -219,12 +251,12 @@ export default function App() {
     navigateTo('product-detail', product);
   };
 
-  // 5. YENİ ELAN PAYLAŞMAQ (REST API POST)
+  // 5. YENİ ELAN PAYLAŞMAQ (Firestore POST — AddListingPage-dən gəlir)
   const handleAddProductSubmit = (newProduct) => {
     setProducts(prev => [newProduct, ...prev]);
     setSelectedProduct(newProduct);
     navigateTo('product-detail', newProduct);
-    showToast('Təbriklər! Yeni elanınız REST API vasitəsilə paylaşıldı!');
+    showToast('Təbriklər! Elanınız ImgBB + Firestore vasitəsilə paylaşıldı!');
   };
 
   const handleNavigateListings = (filters = {}) => {
@@ -242,6 +274,7 @@ export default function App() {
 
   const cartCount = (Array.isArray(cartItems) ? cartItems : []).reduce((acc, item) => acc + (item.quantity || 1), 0);
   const favoriteProducts = (Array.isArray(products) ? products : []).filter(p => (Array.isArray(favorites) ? favorites : []).includes(p?.id));
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50/60 via-teal-50/30 to-green-100/40 text-gray-800 font-sans selection:bg-emerald-600 selection:text-white">
@@ -342,6 +375,7 @@ export default function App() {
           <ProfilePage
             user={currentUser}
             onLogout={handleLogout}
+            userListings={products.filter(p => p.userId === currentUser?.id) || []}
             rentalBookings={rentalBookings || []}
             orders={orders || []}
             favoriteProducts={favoriteProducts || []}
@@ -383,8 +417,19 @@ export default function App() {
           );
         }}
         onRemoveItem={(id) => setCartItems(prev => (Array.isArray(prev) ? prev : []).filter(item => item.id !== id))}
-        onCheckoutSuccess={(newOrder) => {
-          setOrders(prev => [newOrder, ...(Array.isArray(prev) ? prev : [])]);
+        onCheckoutSuccess={async (newOrder) => {
+          try {
+            // Sifarişi Firestore-a yaz
+            const orderPayload = {
+              ...newOrder,
+              userId: currentUser?.id,
+              date: new Date().toLocaleDateString('az-AZ'),
+            };
+            const saved = await createOrderApi(orderPayload);
+            setOrders(prev => [saved || orderPayload, ...(Array.isArray(prev) ? prev : [])]);
+          } catch (err) {
+            console.error('Sifariş Firestore-a yazılmadı:', err);
+          }
           setCartItems([]);
           setIsCartOpen(false);
           showToast('Sifarişiniz uğurla rəsmiləşdirildi!');
@@ -396,8 +441,18 @@ export default function App() {
         isOpen={!!rentModalProduct}
         product={rentModalProduct}
         onClose={() => setRentModalProduct(null)}
-        onSubmitBooking={(bookingData) => {
-          setRentalBookings(prev => [bookingData, ...(Array.isArray(prev) ? prev : [])]);
+        onSubmitBooking={async (bookingData) => {
+          try {
+            // İcarə sifarişini Firestore-a yaz
+            const bookingPayload = {
+              ...bookingData,
+              userId: currentUser?.id,
+            };
+            const saved = await createBookingApi(bookingPayload);
+            setRentalBookings(prev => [saved || bookingPayload, ...(Array.isArray(prev) ? prev : [])]);
+          } catch (err) {
+            console.error('İcarə sifarişi Firestore-a yazılmadı:', err);
+          }
           setRentModalProduct(null);
           showToast('İcarə sorğunuz göndərildi!');
         }}
@@ -408,7 +463,18 @@ export default function App() {
         isOpen={!!contactModalProduct}
         product={contactModalProduct}
         onClose={() => setContactModalProduct(null)}
-        onSendMessage={(msgData) => {
+        onSendMessage={async (msgData) => {
+          try {
+            await sendContactMessageApi({
+              ...msgData,
+              senderId:    currentUser?.id,
+              senderName:  currentUser?.name,
+              productId:   contactModalProduct?.id,
+              productTitle:contactModalProduct?.title,
+            });
+          } catch (err) {
+            console.error('Mesaj Firestore-a yazılmadı:', err);
+          }
           setContactModalProduct(null);
           showToast('Mesajınız satıcıya çatdırıldı!');
         }}

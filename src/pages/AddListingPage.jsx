@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from 'react';
 import { createProductApi } from '../services/apiService';
+import { uploadImageToImgBB } from '../services/imageService';
 
 export default function AddListingPage({
   currentUser,
@@ -20,10 +21,12 @@ export default function AddListingPage({
   const [location, setLocation] = useState('Bərdə');
   const [description, setDescription] = useState('');
   
-  // Şəkil yükləmə: Həm Fayl, həm də URL
+  // Şəkil yükləmə
   const [imageUploadType, setImageUploadType] = useState('file');
-  const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=80');
+  const [imageUrl, setImageUrl] = useState('');
   const [imageFilePreview, setImageFilePreview] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
   
   const [features, setFeatures] = useState([
     { key: 'Vəziyyəti', value: 'Yeni' },
@@ -74,10 +77,10 @@ export default function AddListingPage({
         setErrors(prev => ({ ...prev, image: 'Şəklin həcmi maksimum 5MB ola bilər' }));
         return;
       }
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageFilePreview(reader.result);
-        setImageUrl(reader.result);
+        setImageFilePreview(reader.result); // yalnız önizləmə üçün
         setErrors(prev => ({ ...prev, image: '' }));
       };
       reader.readAsDataURL(file);
@@ -119,54 +122,77 @@ export default function AddListingPage({
     if (!validateListing()) return;
     setSubmitting(true);
 
-    const isHeavyOrLand = category === 'Kənd Təsərrüfatı Texnikaları' || category === 'Torpaq, Bağ və Əkin Sahələri';
-    const featureObj = {};
-    features.forEach(f => {
-      if (f.key.trim() && f.value.trim()) featureObj[f.key.trim()] = f.value.trim();
-    });
-
-    const finalImage = imageFilePreview || imageUrl || 'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=80';
-
-    const newProduct = {
-      id: `prod-${Date.now()}`,
-      title: title.trim(),
-      type: type,
-      category: category,
-      subcategory: subcategory,
-      price: Number(price),
-      unit: unit,
-      year: Number(year),
-      location: location,
-      inStock: true,
-      rating: 5.0,
-      reviewsCount: 1,
-      image: finalImage,
-      gallery: [finalImage],
-      description: description.trim(),
-      features: featureObj,
-      canAddToCart: type === 'sale' && !isHeavyOrLand,
-      requiresInquiry: type === 'sale' && isHeavyOrLand,
-      isRental: type === 'rent',
-      seller: {
-        name: sellerName || currentUser.name,
-        phone: sellerPhone,
-        whatsapp: sellerWhatsapp.replace(/\D/g, ''),
-        verified: true,
-        rating: 5.0,
-        memberSince: '2026'
-      },
-      userId: currentUser.id
-    };
-
     try {
+      // ── Addım 1: Şəkili ImgBB-yə yüklə ───────────────────
+      let finalImage = imageUrl || '';
+
+      if (imageFile) {
+        setImageUploading(true);
+        try {
+          finalImage = await uploadImageToImgBB(imageFile);
+        } catch (imgErr) {
+          console.error('ImgBB xətası:', imgErr);
+          setErrors(prev => ({ ...prev, image: 'Şəkil yüklənərkən xəta baş verdi.' }));
+          return;
+        } finally {
+          setImageUploading(false);
+        }
+      }
+
+      if (!finalImage) {
+        setErrors(prev => ({ ...prev, image: 'Şəkil mütləq əlavə edilməlidir' }));
+        return;
+      }
+
+      // ── Addım 2: Məhsulu Firestore-a yaz ──────────────────
+      const isHeavyOrLand = category === 'Kənd Təsərrüfatı Texnikaları'
+                          || category === 'Torpaq, Bağ və Əkin Sahələri';
+      const featureObj = {};
+      features.forEach(f => {
+        if (f.key.trim() && f.value.trim()) featureObj[f.key.trim()] = f.value.trim();
+      });
+
+      const newProduct = {
+        title:           title.trim(),
+        type,
+        category,
+        subcategory,
+        price:           Number(price),
+        unit,
+        year:            Number(year),
+        location,
+        inStock:         true,
+        rating:          5.0,
+        reviewsCount:    1,
+        image:           finalImage,
+        gallery:         [finalImage],
+        description:     description.trim(),
+        features:        featureObj,
+        canAddToCart:    type === 'sale' && !isHeavyOrLand,
+        requiresInquiry: type === 'sale' &&  isHeavyOrLand,
+        isRental:        type === 'rent',
+        seller: {
+          name:        sellerName || currentUser.name,
+          phone:       sellerPhone,
+          whatsapp:    sellerWhatsapp.replace(/\D/g, ''),
+          verified:    true,
+          rating:      5.0,
+          memberSince: '2026',
+        },
+        userId: currentUser.id,
+      };
+
       const result = await createProductApi(newProduct);
       onAddProduct(result || newProduct);
+
     } catch (err) {
-      onAddProduct(newProduct);
+      console.error('Elan paylaşma xətası:', err);
+      setErrors(prev => ({ ...prev, global: 'Elan paylaşılarkən xəta baş verdi.' }));
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8 pb-24 lg:pb-16 animate-fadeIn">

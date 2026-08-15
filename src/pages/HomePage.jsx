@@ -62,13 +62,15 @@ export default function HomePage({
               >
                 <div>
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-100/80 text-emerald-800 flex items-center justify-center font-bold text-xl group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">
-                    {cat.id === 'gubreler' && '🧪'}
-                    {cat.id === 'agac-bitki' && '🌳'}
-                    {cat.id === 'toxum-yem' && '🌾'}
-                    {cat.id === 'levazimatlar' && '🛠️'}
-                    {cat.id === 'dermanlar' && '🛡️'}
-                    {cat.id === 'texnikalar' && '🚜'}
-                    {cat.id === 'torpaq-saheleri' && '🗺️'}
+                    {cat.icon || (
+                      cat.id === 'gubreler' || cat.name?.includes('Gübrə') ? '🧪' :
+                      cat.id === 'agac-bitki' || cat.name?.includes('Ağac') || cat.name?.includes('Bitki') ? '🌳' :
+                      cat.id === 'toxum-yem' || cat.name?.includes('Toxum') || cat.name?.includes('Yem') ? '🌾' :
+                      cat.id === 'levazimatlar' || cat.name?.includes('Ləvazimat') || cat.name?.includes('Alət') ? '🛠️' :
+                      cat.id === 'dermanlar' || cat.name?.includes('Dərman') ? '🛡️' :
+                      cat.id === 'texnikalar' || cat.name?.includes('Texnika') ? '🚜' :
+                      cat.id === 'torpaq-saheleri' || cat.name?.includes('Torpaq') || cat.name?.includes('Bağ') ? '🗺️' : '🌱'
+                    )}
                   </div>
                   <h3 className="font-bold text-gray-900 text-xs sm:text-sm mt-3 sm:mt-4 group-hover:text-emerald-800 transition">
                     {cat.name}

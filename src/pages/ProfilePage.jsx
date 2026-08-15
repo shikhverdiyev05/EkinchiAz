@@ -4,6 +4,7 @@ import ProductCard from '../components/ProductCard';
 export default function ProfilePage({
   user,
   onLogout,
+  userListings = [],
   rentalBookings = [],
   orders = [],
   favoriteProducts = [],
@@ -16,7 +17,7 @@ export default function ProfilePage({
   onRequireAuth,
   onAddNewListing
 }) {
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('listings');
 
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8 pb-24 lg:pb-16 animate-fadeIn">
@@ -74,7 +75,19 @@ export default function ProfilePage({
       </div>
 
       {/* Tabs Bar */}
-      <div className="flex overflow-x-auto no-scrollbar gap-1.5 bg-emerald-50/90 p-1.5 rounded-2xl sm:rounded-3xl border border-emerald-100 backdrop-blur-md max-w-full sm:max-w-2xl">
+      <div className="flex overflow-x-auto no-scrollbar gap-1.5 bg-emerald-50/90 p-1.5 rounded-2xl sm:rounded-3xl border border-emerald-100 backdrop-blur-md max-w-full">
+        
+        <button
+          onClick={() => setActiveTab('listings')}
+          className={`flex-shrink-0 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+            activeTab === 'listings'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-gray-600 hover:text-emerald-800'
+          }`}
+        >
+          📝 Mənim Elanlarım ({userListings.length})
+        </button>
+
         <button
           onClick={() => setActiveTab('orders')}
           className={`flex-shrink-0 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all ${
@@ -83,7 +96,7 @@ export default function ProfilePage({
               : 'text-gray-600 hover:text-emerald-800'
           }`}
         >
-          🛒 Sifarişlər ({orders.length})
+          🛒 Sifarişlər və Ödənişlər ({orders.length})
         </button>
 
         <button
@@ -112,33 +125,93 @@ export default function ProfilePage({
       {/* Tab Contents */}
       <div className="space-y-4">
         
+        {/* Listings Tab */}
+        {activeTab === 'listings' && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-gray-900 text-base sm:text-lg">
+                Mənim Paylaşdığım Elanlar ({userListings.length})
+              </h3>
+              <button
+                onClick={onAddNewListing}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition"
+              >
+                + Yeni Elan Əlavə Et
+              </button>
+            </div>
+
+            {userListings.length === 0 ? (
+              <div className="p-8 sm:p-14 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center space-y-3">
+                <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                  🌾
+                </div>
+                <p className="text-gray-600 font-bold text-sm">Hələ heç bir elan paylaşmamısınız.</p>
+                <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                  Təsərrüfat məhsullarınızı, gübrələrinizi, toxumlarınızı və ya texnikalarınızı dərhal satışa və icarəyə çıxarın.
+                </p>
+                <button
+                  onClick={onAddNewListing}
+                  className="mt-2 px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition"
+                >
+                  İlk Elanını Paylaş
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {userListings.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetails={onViewDetails}
+                    onAddToCart={onAddToCart}
+                    onOpenRentModal={onOpenRentModal}
+                    onOpenContactModal={onOpenContactModal}
+                    isFavorite={favoriteProducts.some(p => p.id === product.id)}
+                    onToggleFavorite={onToggleFavorite}
+                    currentUser={currentUser}
+                    onRequireAuth={onRequireAuth}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Orders Tab */}
         {activeTab === 'orders' && (
           <div>
-            <h3 className="font-black text-gray-900 text-base sm:text-lg mb-3">Onlayn E-Commerce Sifarişlərim</h3>
+            <h3 className="font-black text-gray-900 text-base sm:text-lg mb-3">Onlayn E-Commerce Sifarişlərim və Ödənişlər</h3>
             {orders.length === 0 ? (
-              <div className="p-6 sm:p-12 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center space-y-2">
-                <p className="text-gray-500 text-xs sm:text-sm">Hələ heç bir onlayn məhsul sifariş etməmisiniz.</p>
+              <div className="p-8 sm:p-14 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center space-y-2">
+                <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                  🛒
+                </div>
+                <p className="text-gray-600 font-bold text-sm">Hələ heç bir onlayn məhsul sifariş etməmisiniz.</p>
                 <p className="text-xs text-emerald-700 font-semibold">Gübrələr, toxumlar və alətləri səbətə ataraq sifariş edə bilərsiniz.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {orders.map((order, idx) => (
-                  <div key={idx} className="p-4 sm:p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-                    <div>
+                  <div key={order.id || idx} className="p-4 sm:p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs sm:text-sm font-black text-gray-900">Sifariş #{order.orderId || (10000 + idx)}</span>
+                        <span className="text-xs sm:text-sm font-black text-gray-900">Sifariş #{order.orderId || order.id || (10000 + idx)}</span>
                         <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs font-bold">
-                          ✓ Qəbul edildi
+                          ✓ {order.status || 'Qəbul edildi'}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Tarix: {order.date || 'Bugün'} • Çatdırılma: Qapıya qədər kuryerlə
+                      <p className="text-xs text-gray-500">
+                        Tarix: {order.date || 'Bugün'} • Çatdırılma: {order.deliveryMethod || 'Qapıya qədər kuryerlə'}
                       </p>
+                      {Array.isArray(order.items) && order.items.length > 0 && (
+                        <p className="text-[11px] text-gray-600 font-medium pt-1">
+                          Məhsullar: {order.items.map(i => `${i.title || i.name} (${i.quantity || 1} ədəd)`).join(', ')}
+                        </p>
+                      )}
                     </div>
                     <div className="text-left sm:text-right">
                       <p className="text-[10px] sm:text-xs text-gray-400 font-semibold">Yekun Məbləğ:</p>
-                      <p className="text-base sm:text-lg font-black text-emerald-950">{order.totalAmount || '45.00'} AZN</p>
+                      <p className="text-base sm:text-lg font-black text-emerald-950">{(Number(order.totalAmount) || 0).toLocaleString()} AZN</p>
                     </div>
                   </div>
                 ))}
@@ -152,27 +225,31 @@ export default function ProfilePage({
           <div>
             <h3 className="font-black text-gray-900 text-base sm:text-lg mb-3">Texnika və Sahə İcarə Sifarişlərim</h3>
             {rentalBookings.length === 0 ? (
-              <div className="p-6 sm:p-12 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center">
-                <p className="text-gray-500 text-xs sm:text-sm">Aktiv icarə sifarişiniz yoxdur.</p>
+              <div className="p-8 sm:p-14 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center space-y-2">
+                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                  🚜
+                </div>
+                <p className="text-gray-600 font-bold text-sm">Aktiv icarə sifarişiniz yoxdur.</p>
+                <p className="text-xs text-gray-400">Traktor, kombayn və ya torpaq sahələri üçün icarə sorğusu göndərə bilərsiniz.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {rentalBookings.map((b, idx) => (
-                  <div key={idx} className="p-4 sm:p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-blue-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                  <div key={b.id || idx} className="p-4 sm:p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-blue-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] sm:text-xs font-bold">İcarə</span>
-                        <h4 className="text-xs sm:text-sm font-bold text-gray-900">{b.productTitle}</h4>
+                        <h4 className="text-xs sm:text-sm font-bold text-gray-900">{b.productTitle || b.title}</h4>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Müddət: {b.days || 1} gün • Məkan: {b.locationNote || 'Məkan qeyd olunub'}
+                        Müddət: {b.days || 1} gün • Məkan: {b.locationNote || b.location || 'Məkan qeyd olunub'}
                       </p>
                     </div>
                     <div className="text-left sm:text-right">
                       <p className="text-[10px] sm:text-xs text-gray-400 font-semibold">Təxmini Məbləğ:</p>
-                      <p className="text-base sm:text-lg font-black text-blue-900">{b.estimatedCost?.toLocaleString()} AZN</p>
+                      <p className="text-base sm:text-lg font-black text-blue-900">{(Number(b.estimatedCost) || 0).toLocaleString()} AZN</p>
                       <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 inline-block mt-1">
-                        Təsdiq gözləyir
+                        {b.status || 'Təsdiq gözləyir'}
                       </span>
                     </div>
                   </div>
@@ -187,9 +264,12 @@ export default function ProfilePage({
           <div>
             <h3 className="font-black text-gray-900 text-base sm:text-lg mb-3">Sevimlilər Siyahım ({favoriteProducts.length})</h3>
             {favoriteProducts.length === 0 ? (
-              <div className="p-6 sm:p-12 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center">
-                <p className="text-gray-500 text-xs sm:text-sm">Heç bir elanı sevimlilərə əlavə etməmisiniz.</p>
-                <p className="text-xs text-gray-400 mt-1">Elanların üzərindəki ürək ❤️ ikonuna klikləyərək yadda saxlayın.</p>
+              <div className="p-8 sm:p-14 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center space-y-2">
+                <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                  ❤️
+                </div>
+                <p className="text-gray-600 font-bold text-sm">Heç bir elanı sevimlilərə əlavə etməmisiniz.</p>
+                <p className="text-xs text-gray-400">Elanların üzərindəki ürək ❤️ ikonuna klikləyərək yadda saxlayın.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
