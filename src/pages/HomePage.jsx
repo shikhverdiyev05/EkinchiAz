@@ -57,41 +57,68 @@ export default function HomePage({
             </button>
           </div>
 
-          <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto no-scrollbar pb-3 sm:pb-0 scroll-smooth snap-x">
-            {categories.filter(c => c.id !== 'all').map((cat) => (
-              <div
-                key={cat.id}
-                onClick={() => onNavigateListings({ category: cat.name })}
-                className="group p-4 sm:p-5 rounded-3xl bg-white/85 backdrop-blur-md border border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50/50 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col justify-between min-w-[160px] sm:min-w-0 snap-start flex-shrink-0"
-              >
-                <div>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-100/80 text-emerald-800 flex items-center justify-center font-bold text-xl group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">
-                    {cat.icon || (
-                      cat.id === 'gubreler' || cat.name?.includes('Gübrə') ? '🧪' :
-                      cat.id === 'agac-bitki' || cat.name?.includes('Ağac') || cat.name?.includes('Bitki') ? '🌳' :
-                      cat.id === 'toxum-yem' || cat.name?.includes('Toxum') || cat.name?.includes('Yem') ? '🌾' :
-                      cat.id === 'levazimatlar' || cat.name?.includes('Ləvazimat') || cat.name?.includes('Alət') ? '🛠️' :
-                      cat.id === 'dermanlar' || cat.name?.includes('Dərman') ? '🛡️' :
-                      cat.id === 'texnikalar' || cat.name?.includes('Texnika') ? '🚜' :
-                      cat.id === 'torpaq-saheleri' || cat.name?.includes('Torpaq') || cat.name?.includes('Bağ') ? '🗺️' : '🌱'
-                    )}
-                  </div>
-                  <h3 className="font-bold text-gray-900 text-xs sm:text-sm mt-3 sm:mt-4 group-hover:text-emerald-800 transition">
-                    {cat.name}
-                  </h3>
-                  <p className="text-[10px] sm:text-[11px] text-gray-500 mt-1 line-clamp-2">
-                    {cat.description}
-                  </p>
-                </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            {categories.filter(c => c.id !== 'all').map((cat, idx) => {
+              // İkon seçimi
+              const icon = cat.icon || (
+                cat.name?.includes('Gübrə') ? '🧪' :
+                cat.name?.includes('Ağac') || cat.name?.includes('Bitki') || cat.name?.includes('Ting') ? '🌳' :
+                cat.name?.includes('Toxum') || cat.name?.includes('Yem') ? '🌾' :
+                cat.name?.includes('Dərman') ? '🛡️' :
+                cat.name?.includes('Texnika') ? '🚜' :
+                cat.name?.includes('Torpaq') || cat.name?.includes('Bağ') || cat.name?.includes('Sahə') ? '🗺️' :
+                cat.name?.includes('Ləvazimat') || cat.name?.includes('Alət') ? '🛠️' :
+                cat.name?.includes('Heyvan') || cat.name?.includes('Quşçu') ? '🐄' :
+                cat.name?.includes('Topdan') || cat.name?.includes('Məhsul') ? '🧺' :
+                cat.name?.includes('Aqronom') || cat.name?.includes('Servis') ? '🔬' : '🌱'
+              );
 
-                <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-emerald-50 flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-emerald-700">
-                  <span>
-                    {cat.type === 'sale' ? 'Yalnız Satış' : cat.type === 'both' ? 'Satış & İcarə' : 'İcarə'}
-                  </span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+              // Məcburi description fallback — DEFAULT_CATEGORIES-dən götürülür
+              const fallbackDesc = {
+                'Gübrələr və Kimyəvi Maddələr': 'Azot, fosfor, kalium, mikroelementlər və üzvi kompost gübrələri',
+                'Ağac, Bitki və Meyvə Tingləri': 'Sertifikatlı meyvə tingləri, dekorativ ağaclar və gül kolları',
+                'Toxumlar və Heyvan Yemləri': 'Məhsuldar taxıl, tərəvəz toxumları və yüksək proteinli yemlər',
+                'Aqrar və Heyvan Dərmanları': 'Zərərverici, alaq və xəstəliklərə qarşı dərmanlar',
+                'Kənd Təsərrüfatı Texnikaları': 'Traktorlar, kombaynlar, kotanlar və aqrar texnikalar',
+                'Torpaq, Bağ və Əkin Sahələri': 'Münbit suvarılan torpaqlar, meyvə bağları, istixanalar',
+                'Təsərrüfat və Bağ Ləvazimatları': 'Damla suvarma, arıçılıq, budama alətləri və şitillik ləvazimatları',
+                'Heyvandarlıq və Quşçuluq': 'Damazlıq iribuynuzlu heyvanlar, arı ailələri, quşlar',
+                'Topdan Aqrar Məhsul Satışı': 'Fermerdən birbaşa bal, meyvə-tərəvəz və taxıl məhsulları',
+                'Aqronom və Aqro-Servis Xidmətləri': 'Torpaq analizindən dronla çiləməyə qədər aqrar xidmətlər',
+              };
+              const desc = cat.description || fallbackDesc[cat.name] || 'Azərbaycan fermerlərinin aqrar elanları';
+
+              return (
+                <div
+                  key={cat.id || cat.name}
+                  onClick={() => onNavigateListings({ category: cat.name })}
+                  className={`group p-4 sm:p-5 rounded-3xl bg-white/90 backdrop-blur-md border border-emerald-100 hover:border-emerald-400 hover:bg-emerald-50/60 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer flex-col h-full ${idx >= 4 ? 'hidden sm:flex' : 'flex'}`}
+                >
+                  {/* İkon */}
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-100/80 text-emerald-800 flex items-center justify-center font-bold text-xl group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs shrink-0">
+                    {icon}
+                  </div>
+
+                  {/* Başlıq + Description */}
+                  <div className="flex-1 mt-3">
+                    <h3 className="font-bold text-gray-900 text-xs sm:text-[13px] leading-snug group-hover:text-emerald-800 transition line-clamp-2">
+                      {cat.name}
+                    </h3>
+                    <p className="text-[10px] sm:text-[11px] text-gray-500 mt-1.5 leading-relaxed line-clamp-2">
+                      {desc}
+                    </p>
+                  </div>
+
+                  {/* Alt Footer */}
+                  <div className="mt-3 pt-2.5 border-t border-emerald-100/80 flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-emerald-700">
+                    <span className="px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700">
+                      {cat.type === 'sale' ? 'Satış' : cat.type === 'both' ? 'Satış & İcarə' : 'İcarə'}
+                    </span>
+                    <span className="group-hover:translate-x-1 transition-transform text-base leading-none">→</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

@@ -24,9 +24,12 @@ export default function HeroSection({
   const rentCount = products.filter(p => p.type === 'rent').length;
   
   // Regionların sayı
-  const totalRegions = Array.isArray(regions) && regions.length > 0 
-    ? regions.filter(r => (typeof r === 'string' ? r : r?.name) !== 'Hamısı').length 
-    : 40;
+  const rawRegionsCount = Array.isArray(regions)
+    ? regions
+        .map(r => (typeof r === 'string' ? r : r?.name || r?.id))
+        .filter(r => r && r !== 'Hamısı' && r !== 'all').length
+    : 0;
+  const totalRegions = rawRegionsCount > 10 ? rawRegionsCount : 70;
 
   return (
     <section className="relative overflow-hidden pt-4 pb-12 sm:pt-12 sm:pb-20">

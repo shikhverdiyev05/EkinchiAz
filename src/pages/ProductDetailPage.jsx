@@ -72,35 +72,64 @@ export default function ProductDetailPage({
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-10 pb-24 lg:pb-16 animate-fadeIn">
       
-      {/* Breadcrumb */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-gray-500 font-medium overflow-x-auto py-1">
-          <button onClick={onBack} className="hover:text-emerald-700 font-bold flex items-center gap-1 text-emerald-800">
-            <span>← Elanlara Qayıt</span>
+      {/* Compact Breadcrumb & Favorite Bar */}
+      <div className="flex items-center justify-between gap-2 text-[11px] sm:text-xs">
+        
+        {/* Sol: Geri düyməsi + breadcrumb */}
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          
+          {/* Geri Düyməsi — Pill */}
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition active:scale-95 shrink-0 shadow-sm"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="hidden xs:inline">Geri</span>
           </button>
-          <span>/</span>
-          <span className="text-gray-600">{product.category}</span>
-          {product.subcategory && (
-            <>
-              <span>/</span>
-              <span className="text-gray-600">{product.subcategory}</span>
-            </>
-          )}
-          <span>/</span>
-          <span className="text-gray-900 font-bold truncate max-w-[200px]">{product.title}</span>
+
+          {/* Breadcrumb Trail */}
+          <div className="flex items-center gap-1 text-gray-400 font-medium min-w-0 overflow-hidden">
+            <svg className="w-3 h-3 shrink-0 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="truncate text-gray-500 max-w-[80px] sm:max-w-[140px]" title={product.category}>
+              {product.category}
+            </span>
+            {product.subcategory && (
+              <>
+                <svg className="w-3 h-3 shrink-0 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+                <span className="truncate text-gray-500 max-w-[80px] sm:max-w-[120px] hidden sm:inline" title={product.subcategory}>
+                  {product.subcategory}
+                </span>
+              </>
+            )}
+            <svg className="w-3 h-3 shrink-0 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="truncate text-gray-800 font-bold max-w-[100px] sm:max-w-[200px]" title={product.title}>
+              {product.title}
+            </span>
+          </div>
         </div>
 
+        {/* Sağ: Sevimli İkon Düyməsi */}
         <button
           onClick={handleFavoriteClick}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl border transition text-xs font-bold ${
+          title={isFavorite ? 'Sevimlilərdən sil' : 'Sevimlilərə əlavə et'}
+          className={`shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl border transition text-[11px] sm:text-xs font-bold active:scale-95 ${
             isFavorite 
               ? 'bg-rose-50 border-rose-200 text-rose-600 shadow-xs' 
-              : 'bg-white border-gray-200 text-gray-700 hover:text-rose-600'
+              : 'bg-white border-gray-200 text-gray-500 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50'
           }`}
         >
-          <span>❤️</span>
-          <span>{isFavorite ? 'Sevimlilərdən sil' : 'Sevimlilərə əlavə et'}</span>
+          <span className="text-sm leading-none">{isFavorite ? '❤️' : '🤍'}</span>
+          <span className="hidden sm:inline">{isFavorite ? 'Sevimlilərdən sil' : 'Sevimlilərə əlavə et'}</span>
         </button>
+
       </div>
 
       {/* Grid */}

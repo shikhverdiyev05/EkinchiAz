@@ -39,31 +39,210 @@ const COL = {
   POSTS:      'posts',
 };
 
+// ────────────────────────────────
+// 70+ ƏTRAFLI AZƏRBAYCAN REGİONLARI
+// ────────────────────────────────
+export const DEFAULT_REGIONS = [
+  'Bakı', 'Abşeron', 'Sumqayıt', 'Gəncə', 'Mingəçevir', 'Şirvan', 'Naxçıvan MR',
+  'Quba', 'Qusar', 'Xaçmaz', 'Şabran', 'Siyəzən', 'Xızı',
+  'Qəbələ', 'Şəki', 'Zaqatala', 'Balakən', 'Qax', 'Oğuz',
+  'Bərdə', 'Tərtər', 'Ağdam', 'Ağcabədi', 'Yevlax', 'Füzuli', 'Cəbrayıl', 'Zəngilan', 'Qubadlı', 'Laçın', 'Kəlbəcər', 'Şuşa', 'Xankəndi', 'Xocalı', 'Xocavənd',
+  'Kürdəmir', 'Ucar', 'Göyçay', 'Zərdab', 'Ağdaş', 'İsmayıllı', 'Şamaxı', 'Qobustan', 'Ağsu',
+  'Şəmkir', 'Tovuz', 'Qazax', 'Ağstafa', 'Gədəbəy', 'Daşkəsən', 'Goranboy', 'Samux', 'Göygöl',
+  'Saatlı', 'Sabirabad', 'İmişli', 'Beyləqan', 'Biləsuvar', 'Cəlilabad', 'Masallı', 'Lənkəran', 'Astara', 'Lerik', 'Yardımlı',
+  'Salyan', 'Neftçala', 'Hacıqabul',
+  'Şahbuz', 'Babək', 'Ordubad', 'Culfa', 'Kəngərli', 'Sədərək', 'Şərur'
+];
+
+// ────────────────────────────────
+// 10 ZƏNGİN AQRAR KATEQORİYA VƏ ALT KATEQORİYALAR
+// ────────────────────────────────
+export const DEFAULT_CATEGORIES = [
+  {
+    id: 'gubreler',
+    name: 'Gübrələr və Kimyəvi Maddələr',
+    icon: '🧪',
+    type: 'sale',
+    description: 'Azot, fosfor, kalium, mikroelementlər və üzvi kompost gübrələri',
+    subcategories: [
+      'Azot Gübrələri (Karbamid, Selitra)',
+      'Fosfor və Ammophos Gübrələri',
+      'Kalium və Kompleks NPK Gübrələri',
+      'Üzvi və Bio-Gübrələr',
+      'Maye və Yarpaq Gübrələri',
+      'Mikroelementlər və Şelat Maddələri',
+      'Torpaq Kondisionerləri və Kompost'
+    ]
+  },
+  {
+    id: 'agac-bitki',
+    name: 'Ağac, Bitki və Meyvə Tingləri',
+    icon: '🌳',
+    type: 'sale',
+    description: 'Sertifikatlı meyvə tingləri, dekorativ və həmişəyaşıl ağaclar, gül kolları',
+    subcategories: [
+      'Meyvə Tingləri (Alma, Armud, Şaftalı, Gavalı, Gilas)',
+      'Qərzəkli Meyvələr (Fındıq, Qoz, Badam, Püstə)',
+      'Subtropik Bitkilər (Zeytun, Nar, Xurma, Əncir, Sitrus)',
+      'Dekorativ və Həmişəyaşıl Park Ağacları',
+      'Gül və Landşaft Çiçəkləri',
+      'Tərəvəz Şitilləri və Çiyələk Kolları',
+      'Üzüm Tənəkləri və Giləmeyvələr'
+    ]
+  },
+  {
+    id: 'toxum-yem',
+    name: 'Toxumlar və Heyvan Yemləri',
+    icon: '🌾',
+    type: 'sale',
+    description: 'Məhsuldar taxıl, tərəvəz, bostan toxumları və yüksək proteinli yemlər',
+    subcategories: [
+      'Taxıl Toxumları (Buğda, Arpa, Vələmir, Çovdar)',
+      'Tərəvəz və Bostan Bitkisi Toxumları',
+      'Yonca, Koronqa və Çəmən Ot Toxumları',
+      'Qüvvəli Yemlər və Kombikormlar',
+      'Silos, Senaj, Pres Ot və Kəpək',
+      'Mineral Yem Əlavələri, Premikslər və Duzlar'
+    ]
+  },
+  {
+    id: 'dermanlar',
+    name: 'Aqrar və Heyvan Dərmanları',
+    icon: '🛡️',
+    type: 'sale',
+    description: 'Zərərvericilərə, alaq otlarına və xəstəliklərə qarşı dərmanlar, baytarlıq vasitələri',
+    subcategories: [
+      'Fungisidlər (Göbələk və pas xəstəlikləri əleyhinə)',
+      'İnsektisidlər (Zərərverici həşərat əleyhinə)',
+      'Herbisidlər (Alaq otları əleyhinə)',
+      'Akarisidlər və Nematosidlər',
+      'Baytarlıq Dərmanları, Antibiotiklər və Peyvəndlər',
+      'Bitki Biostimulyatorları, Amin Turşuları və Vitaminlər'
+    ]
+  },
+  {
+    id: 'texnikalar',
+    name: 'Kənd Təsərrüfatı Texnikaları',
+    icon: '🚜',
+    type: 'both',
+    description: 'Traktorlar, kombaynlar, aqreqatlar, qoşqular və əkin-biçin texnikaları',
+    subcategories: [
+      'Təkərli və Tırtıllı Traktorlar',
+      'Taxılyığan və Yemyığan Kombaynlar',
+      'Kotanlar, Frezlər, Diskli Malalar və Kultivatorlar',
+      'Dərman Çiləyən və Gübrə Səpən Aqreqatlar',
+      'Otbiçən, Dırmıq və Presvuran Texnikalar',
+      'Traktor Qoşquları və Təsərrüfat Yükdaşıma Texnikası',
+      'Dizel Suvarma Pompaları və Aqrar Generatorlar'
+    ]
+  },
+  {
+    id: 'torpaq-saheleri',
+    name: 'Torpaq, Bağ və Əkin Sahələri',
+    icon: '🗺️',
+    type: 'both',
+    description: 'Münbit suvarılan əkin torpaqları, bar verən meyvə bağları və istixanalar',
+    subcategories: [
+      'Suvarılan Əkin Sahələri (Mülkiyyət və İcarə)',
+      'Bar Verən Meyvə və Fındıq Bağları',
+      'Müasir İstixana Kompleksləri (Parniklər)',
+      'Otlaq və Maldarlıq Təsərrüfat Sahələri',
+      'Balıqçılıq Gölləri və Su Hövzələri',
+      'Təsərrüfat Təyinatlı Həyətyanı Sahələr'
+    ]
+  },
+  {
+    id: 'levazimatlar',
+    name: 'Təsərrüfat və Bağ Ləvazimatları',
+    icon: '🛠️',
+    type: 'sale',
+    description: 'Damla suvarma boruları, arıçılıq qutuları, budama və əl alətləri',
+    subcategories: [
+      'Damla və Yağışmator Suvarma Sistemləri',
+      'Arıçılıq Avadanlıqları, Pətəklər və Bal Süzənlər',
+      'Budama Qayçıları, Mişarlar və Əl Alətləri',
+      'Şitillik Kasetləri və İstixana Plyonkaları',
+      'Aqro-Tekstil, Kölgəlik və Doluvuran Torlar',
+      'Elektron Təsərrüfat Tərəziləri və Qablaşdırma Yeşikləri'
+    ]
+  },
+  {
+    id: 'heyvandarliq',
+    name: 'Heyvandarlıq və Quşçuluq',
+    icon: '🐄',
+    type: 'sale',
+    description: 'Damazlıq iribuynuzlu və xırdabuynuzlu heyvanlar, quşlar və arı ailələri',
+    subcategories: [
+      'Südlük və Ətlik İnəklər (Holşteyn, Simental, Şvis)',
+      'Damazlıq Qoyunlar (Qala, Balbas, Qarabağ) və Keçilər',
+      'Damazlıq Qafqaz Arı Ailələri və Ana Arılar',
+      'Kənd Toyuqları, Cücələr, Qaz və Ördək Balaları',
+      'Yumurta və Avtomatik İnkubator Avadanlıqları',
+      'Sağım Aparatları və Süd Soyuducu Çənlər'
+    ]
+  },
+  {
+    id: 'mehsul-satisi',
+    name: 'Topdan Aqrar Məhsul Satışı',
+    icon: '🧺',
+    type: 'sale',
+    description: 'Fermerdən birbaşa təbii bal, meyvə-tərəvəz və taxıl məhsulları',
+    subcategories: [
+      'Təbii Dağ, Meşə və Cökə Balları',
+      'Meyvə və Tərəvəz (Topdan və Pərakəndə)',
+      'Taxıl, Buğda, Qarğıdalı və Paxlalı Bitkilər',
+      'Quru Meyvələr, Çərəzlər və Zəfəran',
+      'Təbii Kənd Pendiri, Kərə Yağı və Süd Məhsulları'
+    ]
+  },
+  {
+    id: 'aqronom-xidmetleri',
+    name: 'Aqronom və Aqro-Servis Xidmətləri',
+    icon: '🔬',
+    type: 'both',
+    description: 'Torpaq və su laborator analizləri, aqronom konsultasiyası, dronla dərmanlama',
+    subcategories: [
+      'Torpaq və Su Laboratoriya Analizləri',
+      'Aqrar Dronla Sahələrin Çilənməsi və Xəritələnməsi',
+      'Meyvə Bağlarının Peşəkar Budanması və Peyvəndi',
+      'Dərin Su Quyu Qazılması və Nasos Quraşdırılması',
+      'Təsərrüfat Layihələndirilməsi və Mövsümi Aqronom Müşayiəti'
+    ]
+  }
+];
+
 // ════════════════════════════════
 // 1. PRODUCTS
 // ════════════════════════════════
 
 /** GET — Firestore-dan bütün məhsulları oxuyur */
 export async function getProductsApi() {
-  const snap = await getDocs(collection(db, COL.PRODUCTS));
-  return snap.docs.map(d => normalizeProduct({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(collection(db, COL.PRODUCTS));
+    return snap.docs.map(d => normalizeProduct({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error('getProductsApi error:', err);
+    return [];
+  }
 }
 
 /** GET — Bir istifadəçinin öz məhsulları */
 export async function getUserProductsApi(userId) {
   if (!userId) return [];
-  const q = query(
-    collection(db, COL.PRODUCTS),
-    where('userId', '==', userId)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => normalizeProduct({ id: d.id, ...d.data() }));
+  try {
+    const q = query(
+      collection(db, COL.PRODUCTS),
+      where('userId', '==', userId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => normalizeProduct({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error('getUserProductsApi error:', err);
+    return [];
+  }
 }
 
-/**
- * POST — Yeni məhsul Firestore-a əlavə edir
- * @param {object} productData — imgbb-dən alınmış `image` URL daxil
- */
+/** POST — Yeni məhsul Firestore-a əlavə edir */
 export async function createProductApi(productData) {
   const payload = {
     ...productData,
@@ -83,10 +262,6 @@ export async function deleteProductApi(productId) {
 // 2. USERS — Login, Register & Edit Profile
 // ════════════════════════════════
 
-/**
- * LOGIN: Firestore-da email/şifrə ilə istifadəçi axtarır
- * Tapılsa token yaradıb localStorage-a saxlayır
- */
 export async function loginUserApi(email, password) {
   const normalizedEmail = email.trim().toLowerCase();
 
@@ -114,14 +289,9 @@ export async function loginUserApi(email, password) {
   return { success: true, user: userData, token };
 }
 
-/**
- * REGISTER: Firestore-a yeni istifadəçi əlavə edir
- * Uğurlu olduqda token yaradıb localStorage-a saxlayır
- */
 export async function registerUserApi(userData) {
   const normalizedEmail = userData.email.trim().toLowerCase();
 
-  // E-poçt dublikat yoxlaması
   const existing = query(
     collection(db, COL.USERS),
     where('email', '==', normalizedEmail)
@@ -156,9 +326,6 @@ export async function registerUserApi(userData) {
   return { success: true, user: newUser, token };
 }
 
-/**
- * PROFİLİ YENİLƏMƏK: Ad, telefon, unvan, profil şəkli (avatar) və s.
- */
 export async function updateUserProfileApi(userId, updateData) {
   if (!userId) throw new Error('User ID tələb olunur');
 
@@ -168,45 +335,90 @@ export async function updateUserProfileApi(userId, updateData) {
     updatedAt: serverTimestamp(),
   });
 
-  // Yenilənmiş məlumatları götür
   const updatedSnap = await getDoc(userDocRef);
   const updatedUser = { id: updatedSnap.id, ...updatedSnap.data() };
 
-  // localStorage-ı da dərhal yenilə
   localStorage.setItem('ekinchi_user', JSON.stringify(updatedUser));
   return updatedUser;
 }
 
 // ════════════════════════════════
-// 3. CATEGORIES & REGIONS
+// 3. CATEGORIES & REGIONS (Normalizasiya edilmiş və Zəngin)
 // ════════════════════════════════
 
 export async function getCategoriesApi() {
-  const snap = await getDocs(collection(db, COL.CATEGORIES));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(collection(db, COL.CATEGORIES));
+    const cloudCats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (cloudCats.length === 0) {
+      return DEFAULT_CATEGORIES;
+    }
+
+    // Əgər buludda kateqoriyalar varsa, onları DEFAULT ilə birləşdir
+    const merged = [...cloudCats];
+    DEFAULT_CATEGORIES.forEach(defCat => {
+      if (!merged.some(c => c.name === defCat.name || c.id === defCat.id)) {
+        merged.push(defCat);
+      }
+    });
+
+    return merged;
+  } catch (err) {
+    console.error('getCategoriesApi error, returning default categories:', err);
+    return DEFAULT_CATEGORIES;
+  }
 }
 
 export async function getRegionsApi() {
-  const snap = await getDocs(collection(db, COL.REGIONS));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(collection(db, COL.REGIONS));
+    const regionsList = new Set(DEFAULT_REGIONS);
+
+    snap.docs.forEach(docSnap => {
+      const data = docSnap.data();
+      if (typeof data === 'string') {
+        regionsList.add(data);
+      } else if (Array.isArray(data)) {
+        data.forEach(r => typeof r === 'string' && regionsList.add(r));
+      } else if (typeof data === 'object' && data !== null) {
+        if (data.name && typeof data.name === 'string') regionsList.add(data.name);
+        if (Array.isArray(data.items)) data.items.forEach(r => typeof r === 'string' && regionsList.add(r));
+        if (Array.isArray(data.regions)) data.regions.forEach(r => typeof r === 'string' && regionsList.add(r));
+        Object.values(data).forEach(val => {
+          if (typeof val === 'string' && val.length > 1 && !val.startsWith('http') && val !== docSnap.id) {
+            regionsList.add(val);
+          }
+        });
+      }
+    });
+
+    return Array.from(regionsList).filter(r => r && r !== 'Hamısı' && r !== 'all');
+  } catch (err) {
+    console.error('getRegionsApi error, returning default regions:', err);
+    return DEFAULT_REGIONS;
+  }
 }
 
 // ════════════════════════════════
 // 4. ORDERS & BOOKINGS
 // ════════════════════════════════
 
-/** GET — İstifadəçinin sifarişlərini gətirir */
 export async function getUserOrdersApi(userId) {
   if (!userId) return [];
-  const q = query(
-    collection(db, COL.ORDERS),
-    where('userId', '==', userId)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const q = query(
+      collection(db, COL.ORDERS),
+      where('userId', '==', userId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error('getUserOrdersApi error:', err);
+    return [];
+  }
 }
 
-/** POST — Yeni sifariş Firestore-a yazılır */
 export async function createOrderApi(orderData) {
   const payload = {
     ...orderData,
@@ -217,18 +429,21 @@ export async function createOrderApi(orderData) {
   return { id: ref.id, ...payload };
 }
 
-/** GET — İstifadəçinin icarə sifarişlərini gətirir */
 export async function getUserBookingsApi(userId) {
   if (!userId) return [];
-  const q = query(
-    collection(db, COL.BOOKINGS),
-    where('userId', '==', userId)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const q = query(
+      collection(db, COL.BOOKINGS),
+      where('userId', '==', userId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error('getUserBookingsApi error:', err);
+    return [];
+  }
 }
 
-/** POST — Yeni icarə sifarişi Firestore-a yazılır */
 export async function createBookingApi(bookingData) {
   const payload = {
     ...bookingData,
@@ -254,19 +469,23 @@ export async function sendContactMessageApi(messageData) {
 
 export async function getUserContactsApi(userId) {
   if (!userId) return [];
-  const q = query(
-    collection(db, COL.CONTACTS),
-    where('senderId', '==', userId)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const q = query(
+      collection(db, COL.CONTACTS),
+      where('senderId', '==', userId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (err) {
+    console.error('getUserContactsApi error:', err);
+    return [];
+  }
 }
 
 // ════════════════════════════════
 // 6. CART & FAVORITES SYNC (Firestore)
 // ════════════════════════════════
 
-/** İstifadəçinin səbətini Firestore ilə sinxronlaşdırır */
 export async function syncCartToFirestore(userId, cartItems) {
   if (!userId) return;
   try {
@@ -277,7 +496,6 @@ export async function syncCartToFirestore(userId, cartItems) {
   }
 }
 
-/** İstifadəçinin sevimlilərini Firestore ilə sinxronlaşdırır */
 export async function syncFavoritesToFirestore(userId, favoriteIds) {
   if (!userId) return;
   try {
@@ -288,7 +506,6 @@ export async function syncFavoritesToFirestore(userId, favoriteIds) {
   }
 }
 
-/** Daxil olmuş istifadəçinin Firestore-dakı səbət və sevimlilərini oxuyur */
 export async function getUserCartAndFavorites(userId) {
   if (!userId) return { cart: [], favorites: [] };
   try {
@@ -311,18 +528,30 @@ export async function getUserCartAndFavorites(userId) {
 // ════════════════════════════════
 
 export async function getAboutApi() {
-  const snap = await getDocs(collection(db, COL.ABOUT));
-  return snap.docs[0]?.data() || null;
+  try {
+    const snap = await getDocs(collection(db, COL.ABOUT));
+    return snap.docs[0]?.data() || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getFaqApi() {
-  const snap = await getDocs(collection(db, COL.FAQ));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(collection(db, COL.FAQ));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    return [];
+  }
 }
 
 export async function getPostsApi() {
-  const snap = await getDocs(collection(db, COL.POSTS));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(collection(db, COL.POSTS));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    return [];
+  }
 }
 
 // ════════════════════════════════
@@ -340,7 +569,7 @@ function generateToken(user) {
     name:  user.name,
     role:  user.role || user.userType || 'farmer',
     iat:   Math.floor(Date.now() / 1000),
-    exp:   Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 gün
+    exp:   Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
   }));
   const sig = toB64(`${user.id}-${user.email}-ekinchi`);
   return `${header}.${payload}.${sig}`;
@@ -352,7 +581,8 @@ function generateToken(user) {
 function normalizeProduct(raw) {
   if (!raw) return {};
   const isHeavy = raw.category === 'Kənd Təsərrüfatı Texnikaları'
-                || raw.category === 'Torpaq, Bağ və Əkin Sahələri';
+                || raw.category === 'Torpaq, Bağ və Əkin Sahələri'
+                || (typeof raw.category === 'string' && (raw.category.includes('Texnika') || raw.category.includes('Torpaq')));
   const type = raw.type || 'sale';
   const img  = raw.image || raw.imageUrl
     || 'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&w=1200&q=80';
@@ -361,7 +591,7 @@ function normalizeProduct(raw) {
     id:             String(raw.id || `prod-${Date.now()}`),
     title:          raw.title || raw.name || 'Aqrar Məhsul',
     type,
-    category:       raw.category    || 'Gübrələr',
+    category:       raw.category    || 'Gübrələr və Kimyəvi Maddələr',
     subcategory:    raw.subcategory  || '',
     price:          Number(raw.price) || 0,
     unit:           raw.unit || (type === 'rent' ? 'AZN / gün' : 'AZN'),

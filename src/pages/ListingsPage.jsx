@@ -20,45 +20,67 @@ export default function ListingsPage({
   const [selectedType, setSelectedType] = useState(initialFilters.type || 'all');
   const [selectedCategory, setSelectedCategory] = useState(initialFilters.category || 'all');
   const [selectedRegion, setSelectedRegion] = useState('all');
-  const [maxPrice, setMaxPrice] = useState(200000);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const filteredProducts = useMemo(() => {
+    const numMin = minPrice !== '' && !isNaN(Number(minPrice)) ? Number(minPrice) : 0;
+    const numMax = maxPrice !== '' && !isNaN(Number(maxPrice)) ? Number(maxPrice) : Infinity;
+
     return products.filter((item) => {
+      // 1. Axtarış
       if (search.trim()) {
         const query = search.toLowerCase();
-        const matchTitle = item.title.toLowerCase().includes(query);
-        const matchDesc = item.description.toLowerCase().includes(query);
-        const matchCat = item.category.toLowerCase().includes(query);
-        const matchLoc = item.location.toLowerCase().includes(query);
-        if (!matchTitle && !matchDesc && !matchCat && !matchLoc) return false;
+        const matchTitle = item.title?.toLowerCase().includes(query);
+        const matchDesc = item.description?.toLowerCase().includes(query);
+        const matchCat = item.category?.toLowerCase().includes(query);
+        const matchSub = item.subcategory?.toLowerCase().includes(query);
+        const matchLoc = item.location?.toLowerCase().includes(query);
+        if (!matchTitle && !matchDesc && !matchCat && !matchSub && !matchLoc) return false;
       }
+
+      // 2. Növ (Satış / İcarə)
       if (selectedType !== 'all' && item.type !== selectedType) return false;
+
+      // 3. Kateqoriya
       if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
-      if (selectedRegion !== 'all' && item.location !== selectedRegion) return false;
-      if (item.price > maxPrice) return false;
+
+      // 4. Region
+      if (selectedRegion !== 'all') {
+        const itemLoc = item.location || '';
+        if (!itemLoc.toLowerCase().includes(selectedRegion.toLowerCase())) return false;
+      }
+
+      // 5. Qiymət aralığı (Min & Max)
+      const itemPrice = Number(item.price) || 0;
+      if (itemPrice < numMin || itemPrice > numMax) return false;
+
       return true;
     }).sort((a, b) => {
-      if (sortBy === 'price-asc') return a.price - b.price;
-      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'price-asc') return (a.price || 0) - (b.price || 0);
+      if (sortBy === 'price-desc') return (b.price || 0) - (a.price || 0);
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
       return (b.year || 0) - (a.year || 0);
     });
-  }, [products, search, selectedType, selectedCategory, selectedRegion, maxPrice, sortBy]);
+  }, [products, search, selectedType, selectedCategory, selectedRegion, minPrice, maxPrice, sortBy]);
 
   const handleResetFilters = () => {
     setSearch('');
     setSelectedType('all');
     setSelectedCategory('all');
     setSelectedRegion('all');
-    setMaxPrice(200000);
+    setMinPrice('');
+    setMaxPrice('');
     setSortBy('newest');
   };
 
   const activeFilterCount = (selectedType !== 'all' ? 1 : 0) + 
                             (selectedCategory !== 'all' ? 1 : 0) + 
                             (selectedRegion !== 'all' ? 1 : 0) + 
+                            (minPrice !== '' ? 1 : 0) +
+                            (maxPrice !== '' ? 1 : 0) +
                             (search.trim() ? 1 : 0);
 
   return (
@@ -92,6 +114,8 @@ export default function ListingsPage({
               setSelectedCategory={setSelectedCategory}
               selectedRegion={selectedRegion}
               setSelectedRegion={setSelectedRegion}
+              minPrice={minPrice}
+              setMinPrice={setMinPrice}
               maxPrice={maxPrice}
               setMaxPrice={setMaxPrice}
               onReset={handleResetFilters}
@@ -120,51 +144,58 @@ export default function ListingsPage({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 {search && (
-                  <button 
+                  <button
                     onClick={() => setSearch('')}
-                    className="absolute right-3 top-2 sm:top-2.5 text-xs text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-2.5 sm:top-3 text-gray-400 hover:text-gray-600 text-xs"
                   >
                     ✕
                   </button>
                 )}
               </div>
 
-              {/* Mobile Filter Button */}
+              {/* Mobile Filter Trigger Button */}
               <button
                 onClick={() => setMobileFilterOpen(true)}
-                className="lg:hidden px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-emerald-100 text-emerald-950 font-bold text-xs flex items-center gap-1.5 flex-shrink-0"
+                className="lg:hidden px-3.5 py-2 sm:py-2.5 rounded-2xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm relative shrink-0"
               >
-                <svg className="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
                 <span>Filtrlər</span>
                 {activeFilterCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center font-bold">
+                  <span className="w-5 h-5 rounded-full bg-amber-400 text-emerald-950 font-black text-[10px] flex items-center justify-center -mr-1">
                     {activeFilterCount}
                   </span>
                 )}
               </button>
             </div>
 
-            {/* Results count & Sort row */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-emerald-50 text-xs">
+            {/* Sub-bar: Count & Sort */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-emerald-50 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-gray-600 font-semibold">Tapılan elan:</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 font-black text-xs">
-                  {filteredProducts.length} ədəd
+                <span className="font-bold text-gray-900">
+                  Tapılan Elanlar: <span className="text-emerald-700 font-black">{filteredProducts.length}</span>
                 </span>
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 underline"
+                  >
+                    Filtrləri təmizlə ({activeFilterCount})
+                  </button>
+                )}
               </div>
 
               <div className="flex items-center gap-2 ml-auto">
-                <span className="text-gray-500 font-semibold hidden sm:inline">Sıralama:</span>
+                <span className="text-gray-500 font-medium text-[11px]">Sırala:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-xs font-bold text-gray-800 outline-none"
+                  className="px-2.5 py-1.5 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500 cursor-pointer"
                 >
                   <option value="newest">Ən Yenilər</option>
-                  <option value="price-asc">Qiymət: Ucuzdan Bahaya</option>
-                  <option value="price-desc">Qiymət: Bahadan Ucuza</option>
+                  <option value="price-asc">Ucuzdan Bahaya</option>
+                  <option value="price-desc">Bahadan Ucuza</option>
                   <option value="rating">Reytinqə Görə</option>
                 </select>
               </div>
@@ -172,82 +203,27 @@ export default function ListingsPage({
 
           </div>
 
-          {/* Active Filter Pills */}
-          {activeFilterCount > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="text-gray-400 text-[11px] font-semibold">Aktiv:</span>
-              
-              {selectedType !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs">
-                  {selectedType === 'sale' ? 'Satış' : 'İcarə'}
-                  <button onClick={() => setSelectedType('all')} className="hover:text-black">✕</button>
-                </span>
-              )}
-
-              {selectedCategory !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs">
-                  {selectedCategory}
-                  <button onClick={() => setSelectedCategory('all')} className="hover:text-black">✕</button>
-                </span>
-              )}
-
-              {selectedRegion !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 font-bold text-xs">
-                  {selectedRegion}
-                  <button onClick={() => setSelectedRegion('all')} className="hover:text-black">✕</button>
-                </span>
-              )}
-
-              <button
-                onClick={handleResetFilters}
-                className="text-rose-600 text-xs font-bold hover:underline ml-1"
-              >
-                Hamısını təmizlə
-              </button>
-            </div>
-          )}
-
-          {/* Mobile Filter Modal Drawer */}
-          {mobileFilterOpen && (
-            <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-              <div className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto p-4 animate-slideUp">
-                <FilterSidebar
-                  selectedType={selectedType}
-                  setSelectedType={setSelectedType}
-                  selectedCategory={selectedCategory}
-                  setSelectedCategory={setSelectedCategory}
-                  selectedRegion={selectedRegion}
-                  setSelectedRegion={setSelectedRegion}
-                  maxPrice={maxPrice}
-                  setMaxPrice={setMaxPrice}
-                  onReset={handleResetFilters}
-                  onCloseMobile={() => setMobileFilterOpen(false)}
-                  categories={categories}
-                  regions={regions}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Product Grid */}
+          {/* Listings Product Grid */}
           {filteredProducts.length === 0 ? (
-            <div className="p-8 sm:p-12 rounded-3xl bg-white/80 backdrop-blur-md border border-emerald-100 text-center space-y-4 shadow-xs">
-              <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto text-2xl">
+            <div className="bg-white/80 backdrop-blur-xl p-10 sm:p-16 rounded-3xl border border-emerald-100 text-center space-y-3 shadow-xs">
+              <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl mx-auto text-emerald-600">
                 🔍
               </div>
-              <h3 className="font-black text-gray-900 text-base sm:text-lg">Axtarışa uyğun elan tapılmadı</h3>
+              <h3 className="font-black text-gray-900 text-base sm:text-lg">
+                Uyğun elan tapılmadı
+              </h3>
               <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                Filtrləri dəyişərək və ya başqa sözlə axtarış edərək yenidən yoxlayın.
+                Axtarış sözünü dəyişin, qiymət aralığını genişləndirin və ya digər kateqoriyalara nəzər salın.
               </p>
               <button
                 onClick={handleResetFilters}
-                className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition"
+                className="mt-2 px-5 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition"
               >
-                Filtrləri Sıfırla
+                Bütün Filtrləri Sıfırla
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -256,7 +232,7 @@ export default function ListingsPage({
                   onAddToCart={onAddToCart}
                   onOpenRentModal={onOpenRentModal}
                   onOpenContactModal={onOpenContactModal}
-                  isFavorite={favorites.includes(product.id)}
+                  isFavorite={(Array.isArray(favorites) ? favorites : []).includes(product.id)}
                   onToggleFavorite={onToggleFavorite}
                   currentUser={currentUser}
                   onRequireAuth={onRequireAuth}
@@ -268,6 +244,30 @@ export default function ListingsPage({
         </div>
 
       </div>
+
+      {/* Mobile Drawer Filter Modal */}
+      {mobileFilterOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-4 sm:p-6 shadow-2xl">
+            <FilterSidebar
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedRegion={selectedRegion}
+              setSelectedRegion={setSelectedRegion}
+              minPrice={minPrice}
+              setMinPrice={setMinPrice}
+              maxPrice={maxPrice}
+              setMaxPrice={setMaxPrice}
+              onReset={handleResetFilters}
+              onCloseMobile={() => setMobileFilterOpen(false)}
+              categories={categories}
+              regions={regions}
+            />
+          </div>
+        </div>
+      )}
 
     </div>
   );

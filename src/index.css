@@ -112,3 +112,175 @@ code {
   background: var(--code-bg);
 }
 
+/* ────────────────────────────────────────────────────────────────
+   CUSTOM SELECT / DROPDOWN STİLİ  (webkit + cross-browser)
+──────────────────────────────────────────────────────────────── */
+
+/* 1. Bütün select elementlərini sıfırla və yenidən stilizə et */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Xüsusi chevron ox */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  padding-right: 38px !important;
+
+  /* Keçiş animasiyası */
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  background-color: #f0fdf4 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+select:hover:not(:focus) {
+  border-color: #6ee7b7 !important;
+  background-color: #f8fffb !important;
+}
+
+/* 2. Webkit — açılan panel (Chrome, Safari, Edge) */
+select::-webkit-scrollbar {
+  width: 6px;
+}
+select::-webkit-scrollbar-track {
+  background: #f0fdf4;
+  border-radius: 8px;
+}
+select::-webkit-scrollbar-thumb {
+  background: #6ee7b7;
+  border-radius: 8px;
+}
+
+/* 3. Native option elementlərini stilizə et */
+select option {
+  font-weight: 600;
+  font-size: 13px;
+  color: #111827;
+  background-color: #ffffff;
+  padding: 10px 14px;
+}
+
+select option:checked,
+select option:hover {
+  background-color: #d1fae5 !important;
+  color: #064e3b !important;
+  font-weight: 700;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   CUSTOM INPUT STİLİ (text, number, tel, date, email)
+──────────────────────────────────────────────────────────────── */
+
+input[type="text"],
+input[type="number"],
+input[type="tel"],
+input[type="email"],
+input[type="url"],
+input[type="date"],
+input[type="password"],
+textarea {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="date"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+/* Date input webkit */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  filter: invert(0.3) sepia(1) saturate(3) hue-rotate(100deg);
+  border-radius: 4px;
+  padding: 2px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Number input — spin butonlarını gizlət */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+
+/* ────────────────────────────────────────────────────────────────
+   FILE UPLOAD BUTTON STİLİ  (webkit)
+──────────────────────────────────────────────────────────────── */
+
+input[type="file"]::-webkit-file-upload-button {
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: opacity 0.15s;
+}
+input[type="file"]::-webkit-file-upload-button:hover {
+  opacity: 0.88;
+}
+input[type="file"]::file-selector-button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: opacity 0.15s;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   SCROLLBAR - Ümumi Özelleşdirmə
+──────────────────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: #a7f3d0; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #6ee7b7; }
+
+/* ────────────────────────────────────────────────────────────────
+   ANİMASİYALAR
+──────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.animate-fadeIn  { animation: fadeIn  0.22s ease both; }
+.animate-slideUp { animation: slideUp 0.22s ease both; }
+

@@ -1,29 +1,16 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
-import { createProductApi } from '../services/apiService';
+import { createProductApi, DEFAULT_CATEGORIES, DEFAULT_REGIONS } from '../services/apiService';
 import { uploadImageToImgBB } from '../services/imageService';
 
-// Kateqoriyalar üçün etibarlı standart alt kateqoriyalar (əgər serverdən gəlməzsə)
-const DEFAULT_SUBCATEGORIES = {
-  'Gübrələr': ['Azot Gübrələri', 'Fosfor Gübrələri', 'Kalium Gübrələri', 'Üzvi Gübrələr', 'Kompost'],
-  'Gübrələr və Kimyəvi Maddələr': ['Azot Gübrələri', 'Fosfor Gübrələri', 'Kalium Gübrələri', 'Üzvi Gübrələr'],
-  'Ağac və Bitkilər': ['Meyvə Tingləri', 'Dekorativ Ağaclar', 'Həmişəyaşıl Bitkilər', 'Gül və Çiçəklər'],
-  'Toxumlar və Heyvan Yemləri': ['Taxıl Toxumları', 'Tərəvəz Toxumları', 'Yonca və Ot Toxumu', 'Qüvvəli Yemlər', 'Silas və Kəpək'],
-  'Toxumlar': ['Taxıl Toxumları', 'Tərəvəz Toxumları', 'Bostan Bitkiləri', 'Yonca'],
-  'Aqrar və Heyvan Dərmanları': ['Fungisidlər (Göbələk)', 'İnsektisidlər (Zərərverici)', 'Herbisidlər (Alaq)', 'Baytarlıq Dərmanları', 'Vitamin və Minerallar'],
-  'Kənd Təsərrüfatı Texnikaları': ['Traktorlar', 'Kombaynlar', 'Kotan və Frezlər', 'Dərman Səpənlər', 'Otbiçənlər', 'Qoşqular'],
-  'Torpaq, Bağ və Əkin Sahələri': ['Suvarılan Əkin Sahəsi', 'Meyvə Bağı', 'İstixana (Parnik)', 'Otlaq və Həyətyanı Sahə'],
-  'Təsərrüfat Ləvazimatları': ['Damla Suvarma Sistemləri', 'Arıçılıq Ləvazimatları', 'Bağban Alətləri', 'Maldarlıq Avadanlıqları']
+// Təhlükəsiz string çıxaran köməkçi funksiya (Obyektlərin React child kimi render olunmasının qarşısını alır)
+const toStringVal = (item) => {
+  if (typeof item === 'string') return item;
+  if (item && typeof item === 'object') {
+    return item.name || item.title || item.label || item.id || '';
+  }
+  return String(item || '');
 };
-
-const DEFAULT_REGIONS = [
-  'Bakı', 'Abşeron', 'Sumqayıt', 'Gəncə', 'Quba', 'Qusar', 'Xaçmaz', 'Şabran',
-  'Qəbələ', 'Şəki', 'Zaqatala', 'Balakən', 'Qax', 'Bərdə', 'Tərtər', 'Ağdam',
-  'Ağcabədi', 'Yevlax', 'Kürdəmir', 'Ucar', 'Göyçay', 'İsmayıllı', 'Şamaxı',
-  'Şəmkir', 'Tovuz', 'Qazax', 'Ağstafa', 'Goranboy', 'Saatlı', 'Sabirabad',
-  'İmişli', 'Biləsuvar', 'Cəlilabad', 'Masallı', 'Lənkəran', 'Astara', 'Lerik',
-  'Salyan', 'Neftçala', 'Naxçıvan MR'
-];
 
 export default function AddListingPage({
   currentUser,
@@ -33,28 +20,39 @@ export default function AddListingPage({
   onAddProduct,
   onCancel
 }) {
-  // Regionlar siyahısını təhlükəsiz formatda çıxarırıq (string array)
+  // Regionlar siyahısını təhlükəsiz string massivinə çeviririk
   const safeRegions = Array.isArray(regions) && regions.length > 0
     ? regions
-        .map(r => (typeof r === 'string' ? r : r?.name || r?.id))
+        .flatMap(r => {
+          if (typeof r === 'string') return [r];
+          if (Array.isArray(r?.items)) return r.items.map(toStringVal);
+          if (r?.name && typeof r.name === 'string') return [r.name];
+          if (typeof r === 'object' && r !== null) {
+            return Object.values(r)
+              .map(toStringVal)
+              .filter(v => v && v.length > 1 && !v.startsWith('http'));
+          }
+          return [];
+        })
+        .map(toStringVal)
         .filter(r => r && r !== 'Hamısı' && r !== 'all')
     : DEFAULT_REGIONS;
 
-  // Kateqoriyalar siyahısını təhlükəsiz formatda çıxarırıq
-  const safeCategories = Array.isArray(categories) && categories.length > 0
-    ? categories.filter(c => c.id !== 'all' && c.name)
-    : [
-        { id: 'gubreler', name: 'Gübrələr və Kimyəvi Maddələr' },
-        { id: 'agac-bitki', name: 'Ağac və Bitkilər' },
-        { id: 'toxum-yem', name: 'Toxumlar və Heyvan Yemləri' },
-        { id: 'levazimatlar', name: 'Təsərrüfat Ləvazimatları' },
-        { id: 'dermanlar', name: 'Aqrar və Heyvan Dərmanları' },
-        { id: 'texnikalar', name: 'Kənd Təsərrüfatı Texnikaları' },
-        { id: 'torpaq-saheleri', name: 'Torpaq, Bağ və Əkin Sahələri' }
-      ];
+  // Kateqoriyalar siyahısını təhlükəsiz obyekt massivinə çeviririk
+  const safeCategories = (Array.isArray(categories) && categories.length > 0
+    ? categories.filter(c => c && c.id !== 'all')
+    : DEFAULT_CATEGORIES).map(c => ({
+      id: c?.id || toStringVal(c?.name) || 'cat',
+      name: toStringVal(c?.name || c?.title || c?.id || 'Gübrələr'),
+      subcategories: Array.isArray(c?.subcategories)
+        ? c.subcategories.map(toStringVal).filter(Boolean)
+        : []
+    }));
+
+  const initialCatName = safeCategories[0]?.name || 'Gübrələr və Kimyəvi Maddələr';
 
   const [type, setType] = useState('sale');
-  const [category, setCategory] = useState(safeCategories[0]?.name || 'Gübrələr');
+  const [category, setCategory] = useState(initialCatName);
   const [subcategory, setSubcategory] = useState('');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -84,7 +82,7 @@ export default function AddListingPage({
 
   // Formu tamamilə təmizləyən funksiya
   const resetForm = () => {
-    const defaultCat = safeCategories[0]?.name || 'Gübrələr';
+    const defaultCat = safeCategories[0]?.name || 'Gübrələr və Kimyəvi Maddələr';
     setType('sale');
     setCategory(defaultCat);
     setSubcategory('');
@@ -114,23 +112,28 @@ export default function AddListingPage({
     }
   }, [categories]);
 
-  // Alt kateqoriyaların dinamik tapılması
-  const activeCategoryObj = safeCategories.find(c => c.name === category);
-  const subcategoriesList = (activeCategoryObj?.subcategories && activeCategoryObj.subcategories.length > 0)
+  // Alt kateqoriyaların dinamik və təhlükəsiz tapılması
+  const activeCategoryObj = safeCategories.find(c => c.name === category || c.id === category);
+  const defaultCategoryObj = DEFAULT_CATEGORIES.find(c => c.name === category || c.id === category);
+  
+  const rawSubList = (activeCategoryObj?.subcategories && activeCategoryObj.subcategories.length > 0)
     ? activeCategoryObj.subcategories
-    : (DEFAULT_SUBCATEGORIES[category] || []);
+    : (defaultCategoryObj?.subcategories || []);
+
+  const subcategoriesList = rawSubList.map(toStringVal).filter(Boolean);
 
   const getSuggestedUnit = (selectedType, selectedCategory) => {
+    const catStr = toStringVal(selectedCategory);
     if (selectedType === 'rent') {
-      return selectedCategory?.includes('Torpaq') || selectedCategory?.includes('Sahə') 
+      return catStr.includes('Torpaq') || catStr.includes('Sahə') 
         ? 'AZN / hektar / il' 
         : 'AZN / gün';
     }
-    if (selectedCategory?.includes('Gübrə')) return 'AZN / kisə';
-    if (selectedCategory?.includes('Ağac') || selectedCategory?.includes('Bitki')) return 'AZN / ədəd';
-    if (selectedCategory?.includes('Toxum') || selectedCategory?.includes('Yem')) return 'AZN / kq';
-    if (selectedCategory?.includes('Dərman')) return 'AZN / flakon';
-    if (selectedCategory?.includes('Texnika') || selectedCategory?.includes('Torpaq')) return 'AZN';
+    if (catStr.includes('Gübrə')) return 'AZN / kisə';
+    if (catStr.includes('Ağac') || catStr.includes('Bitki') || catStr.includes('Ting')) return 'AZN / ədəd';
+    if (catStr.includes('Toxum') || catStr.includes('Yem')) return 'AZN / kq';
+    if (catStr.includes('Dərman')) return 'AZN / flakon';
+    if (catStr.includes('Texnika') || catStr.includes('Torpaq')) return 'AZN';
     return 'AZN / ədəd';
   };
 
@@ -140,11 +143,13 @@ export default function AddListingPage({
   };
 
   const handleCategorySelect = (newCategory) => {
-    setCategory(newCategory);
-    const catObj = safeCategories.find(c => c.name === newCategory);
-    const subList = catObj?.subcategories || DEFAULT_SUBCATEGORIES[newCategory] || [];
+    const catName = toStringVal(newCategory);
+    setCategory(catName);
+    const catObj = safeCategories.find(c => c.name === catName || c.id === catName) 
+      || DEFAULT_CATEGORIES.find(c => c.name === catName || c.id === catName);
+    const subList = (catObj?.subcategories || []).map(toStringVal).filter(Boolean);
     setSubcategory(subList[0] || '');
-    setUnit(getSuggestedUnit(type, newCategory));
+    setUnit(getSuggestedUnit(type, catName));
   };
 
   const handleFileChange = (e) => {
@@ -225,7 +230,8 @@ export default function AddListingPage({
       }
 
       // ── Addım 2: Məhsulu Firestore-a yaz ──────────────────
-      const isHeavyOrLand = category.includes('Texnika') || category.includes('Torpaq') || category.includes('Sahə');
+      const catStr = toStringVal(category);
+      const isHeavyOrLand = catStr.includes('Texnika') || catStr.includes('Torpaq') || catStr.includes('Sahə');
       const featureObj = {};
       features.forEach(f => {
         if (f.key.trim() && f.value.trim()) featureObj[f.key.trim()] = f.value.trim();
@@ -234,12 +240,12 @@ export default function AddListingPage({
       const newProduct = {
         title:           title.trim(),
         type,
-        category,
-        subcategory:     subcategory || '',
+        category:        catStr,
+        subcategory:     toStringVal(subcategory),
         price:           Number(price),
         unit,
         year:            Number(year),
-        location:        location || 'Bakı',
+        location:        toStringVal(location) || 'Bakı',
         inStock:         true,
         rating:          5.0,
         reviewsCount:    1,
@@ -334,9 +340,14 @@ export default function AddListingPage({
                 onChange={(e) => handleCategorySelect(e.target.value)}
                 className="w-full p-2.5 rounded-2xl border border-gray-200 font-bold text-xs bg-white focus:border-emerald-500 outline-none"
               >
-                {safeCategories.map((c) => (
-                  <option key={c.id || c.name} value={c.name}>{c.name}</option>
-                ))}
+                {safeCategories.map((c, idx) => {
+                  const catName = toStringVal(c.name);
+                  return (
+                    <option key={c.id || idx} value={catName}>
+                      {catName}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -349,9 +360,14 @@ export default function AddListingPage({
                 className="w-full p-2.5 rounded-2xl border border-gray-200 font-semibold text-xs bg-white focus:border-emerald-500 outline-none"
               >
                 <option value="">Alt kateqoriya seçin...</option>
-                {subcategoriesList.map((sub, idx) => (
-                  <option key={idx} value={sub}>{sub}</option>
-                ))}
+                {subcategoriesList.map((sub, idx) => {
+                  const subName = toStringVal(sub);
+                  return (
+                    <option key={idx} value={subName}>
+                      {subName}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -363,9 +379,14 @@ export default function AddListingPage({
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full p-2.5 rounded-2xl border border-gray-200 font-bold text-xs bg-white focus:border-emerald-500 outline-none"
               >
-                {safeRegions.map((regName, idx) => (
-                  <option key={idx} value={regName}>{regName}</option>
-                ))}
+                {safeRegions.map((reg, idx) => {
+                  const regName = toStringVal(reg);
+                  return (
+                    <option key={idx} value={regName}>
+                      {regName}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

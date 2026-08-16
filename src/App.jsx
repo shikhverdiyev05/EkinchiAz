@@ -31,6 +31,8 @@ import {
   syncCartToFirestore,
   syncFavoritesToFirestore,
   getUserCartAndFavorites,
+  DEFAULT_CATEGORIES,
+  DEFAULT_REGIONS,
 } from './services/apiService';
 import { 
   getStoredCurrentUser, 
@@ -54,8 +56,8 @@ export default function App() {
   });
 
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [regions, setRegions] = useState([]);
+  const [categories, setCategories] = useState(() => DEFAULT_CATEGORIES);
+  const [regions, setRegions] = useState(() => DEFAULT_REGIONS);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   
