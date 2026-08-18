@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Home, List, MessageSquare, Info, HelpCircle, Phone, PlusCircle, ShoppingCart, User, Menu, Plus } from 'lucide-react';
 
 export default function Navbar({ 
   activePage, 
@@ -154,7 +155,7 @@ export default function Navbar({
                 className="relative p-2.5 sm:p-3 rounded-2xl bg-white/90 border border-emerald-100 text-emerald-800 shadow-xs hover:bg-emerald-50 transition"
                 title="Səbət"
               >
-                <span className="text-lg">🛒</span>
+                <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black min-w-[20px] h-5 rounded-full flex items-center justify-center animate-pulse">
                     {cartCount}
@@ -190,9 +191,9 @@ export default function Navbar({
               {/* Mobile Hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100"
+                className="lg:hidden p-2 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center"
               >
-                <span className="text-lg leading-none">☰</span>
+                <Menu className="w-5 h-5" />
               </button>
             </div>
 
@@ -205,16 +206,16 @@ export default function Navbar({
                 onClick={onAddListingClick}
                 className="w-full text-left px-4 py-3 rounded-2xl font-black text-xs sm:text-sm bg-amber-500 text-white shadow-xs flex items-center justify-between"
               >
-                <span>➕ Yeni Elan Paylaş</span>
+                <span className="flex items-center gap-2"><PlusCircle className="w-4 h-4" /> Yeni Elan Paylaş</span>
                 <span>→</span>
               </button>
 
-              <button onClick={() => handleNavClick('home')} className="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs">🏡 Ana Səhifə</button>
-              <button onClick={() => handleNavClick('listings')} className="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs">🌾 Bütün Elanlar (Satış & İcarə)</button>
-              <button onClick={() => handleNavClick('social')} className="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs">💬 Paylaşımlar (Sosial)</button>
-              <button onClick={() => handleNavClick('about')} className="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs">ℹ️ Haqqımızda</button>
-              <button onClick={() => handleNavClick('faq')} className="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs">❓ FAQ</button>
-              <button onClick={() => handleNavClick('contact')} className="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs">📞 Əlaqə</button>
+              <button onClick={() => handleNavClick('home')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Home className="w-4 h-4 text-emerald-600" /> Ana Səhifə</button>
+              <button onClick={() => handleNavClick('listings')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><List className="w-4 h-4 text-emerald-600" /> Bütün Elanlar (Satış & İcarə)</button>
+              <button onClick={() => handleNavClick('social')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><MessageSquare className="w-4 h-4 text-emerald-600" /> Paylaşımlar (Sosial)</button>
+              <button onClick={() => handleNavClick('about')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Info className="w-4 h-4 text-emerald-600" /> Haqqımızda</button>
+              <button onClick={() => handleNavClick('faq')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><HelpCircle className="w-4 h-4 text-emerald-600" /> FAQ</button>
+              <button onClick={() => handleNavClick('contact')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Phone className="w-4 h-4 text-emerald-600" /> Əlaqə</button>
             </div>
           )}
         </div>
@@ -224,32 +225,32 @@ export default function Navbar({
       <div className={`lg:hidden fixed bottom-3 left-3 right-3 z-40 transition-all duration-300 transform ${
         showBottomBar && !isNearFooter ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'
       }`}>
-        <div className="bg-white/95 backdrop-blur-2xl border border-emerald-100/90 shadow-2xl rounded-3xl p-1.5 flex items-center justify-around">
-          <button onClick={() => handleNavClick('home')} className={`flex flex-col items-center py-1 px-2.5 rounded-2xl transition ${activePage === 'home' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500'}`}>
-            <span className="text-base">🏡</span>
-            <span className="text-[10px] font-bold mt-0.5">Ana Səhifə</span>
+        <div className="bg-white/95 backdrop-blur-2xl border border-emerald-100/90 shadow-2xl rounded-2xl p-1.5 flex items-stretch justify-between gap-1">
+          <button onClick={() => handleNavClick('home')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition ${activePage === 'home' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500 hover:bg-gray-50'}`}>
+            <Home className="w-5 h-5 mb-1" />
+            <span className="text-[9px] font-bold">Ana Səhifə</span>
           </button>
 
-          <button onClick={() => handleNavClick('listings')} className={`flex flex-col items-center py-1 px-2.5 rounded-2xl transition ${activePage === 'listings' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500'}`}>
-            <span className="text-base">🌾</span>
-            <span className="text-[10px] font-bold mt-0.5">Elanlar</span>
+          <button onClick={() => handleNavClick('listings')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition ${activePage === 'listings' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500 hover:bg-gray-50'}`}>
+            <List className="w-5 h-5 mb-1" />
+            <span className="text-[9px] font-bold">Elanlar</span>
           </button>
 
           {/* Plus Add Listing */}
-          <button onClick={onAddListingClick} className="flex flex-col items-center py-1 px-2.5 rounded-2xl bg-amber-500 text-white shadow-md scale-105 active:scale-95 transition">
-            <span className="text-base font-black">➕</span>
-            <span className="text-[9px] font-black mt-0.5">Elan Ver</span>
+          <button onClick={onAddListingClick} className="flex-1 flex flex-col items-center justify-center py-2 rounded-xl bg-amber-500 text-white shadow-md active:scale-95 transition">
+            <Plus className="w-6 h-6 mb-0.5 stroke-[3]" />
+            <span className="text-[9px] font-black">Elan Ver</span>
           </button>
 
-          <button onClick={openCart} className="flex flex-col items-center py-1 px-2.5 rounded-2xl text-gray-500 relative">
-            <span className="text-base">🛒</span>
-            {cartCount > 0 && <span className="absolute top-0 right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">{cartCount}</span>}
-            <span className="text-[10px] font-bold mt-0.5">Səbət</span>
+          <button onClick={openCart} className="flex-1 flex flex-col items-center justify-center py-2 rounded-xl text-gray-500 hover:bg-gray-50 relative">
+            <ShoppingCart className="w-5 h-5 mb-1" />
+            {cartCount > 0 && <span className="absolute top-1 right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">{cartCount}</span>}
+            <span className="text-[9px] font-bold">Səbət</span>
           </button>
 
-          <button onClick={() => currentUser ? handleNavClick('profile') : openAuthModal()} className={`flex flex-col items-center py-1 px-2.5 rounded-2xl transition ${activePage === 'profile' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500'}`}>
-            <span className="text-base">👤</span>
-            <span className="text-[10px] font-bold mt-0.5">Profil</span>
+          <button onClick={() => currentUser ? handleNavClick('profile') : openAuthModal()} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition ${activePage === 'profile' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500 hover:bg-gray-50'}`}>
+            <User className="w-5 h-5 mb-1" />
+            <span className="text-[9px] font-bold">Profil</span>
           </button>
         </div>
       </div>
@@ -258,7 +259,7 @@ export default function Navbar({
       <button
         onClick={scrollToTop}
         title="Yuxarı Qayıt"
-        className={`fixed bottom-6 right-5 sm:right-8 z-50 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 text-white shadow-2xl shadow-emerald-950/30 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group ${
+        className={`fixed bottom-24 lg:bottom-6 right-5 sm:right-8 z-50 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 text-white shadow-2xl shadow-emerald-950/30 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group ${
           showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0 pointer-events-none'
         }`}
       >

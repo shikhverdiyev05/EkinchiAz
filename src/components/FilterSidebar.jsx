@@ -1,4 +1,6 @@
 /* eslint-disable no-unused-vars */
+import React from 'react';
+import { FlaskConical, TreeDeciduous, Wheat, ShieldCheck, Tractor, Map as MapIcon, Wrench, Bird, ShoppingBasket, Microscope, Sprout } from 'lucide-react';
 
 export default function FilterSidebar({
   selectedType,
@@ -16,6 +18,20 @@ export default function FilterSidebar({
   categories = [],
   regions = []
 }) {
+  const getCategoryIcon = (name) => {
+    if (name?.includes('Gübrə')) return <FlaskConical className="w-3.5 h-3.5" />;
+    if (name?.includes('Ağac') || name?.includes('Bitki') || name?.includes('Ting')) return <TreeDeciduous className="w-3.5 h-3.5" />;
+    if (name?.includes('Toxum') || name?.includes('Yem')) return <Wheat className="w-3.5 h-3.5" />;
+    if (name?.includes('Dərman')) return <ShieldCheck className="w-3.5 h-3.5" />;
+    if (name?.includes('Texnika')) return <Tractor className="w-3.5 h-3.5" />;
+    if (name?.includes('Torpaq') || name?.includes('Bağ') || name?.includes('Sahə')) return <MapIcon className="w-3.5 h-3.5" />;
+    if (name?.includes('Ləvazimat') || name?.includes('Alət')) return <Wrench className="w-3.5 h-3.5" />;
+    if (name?.includes('Heyvan') || name?.includes('Quşçu')) return <Bird className="w-3.5 h-3.5" />;
+    if (name?.includes('Topdan') || name?.includes('Məhsul')) return <ShoppingBasket className="w-3.5 h-3.5" />;
+    if (name?.includes('Aqronom') || name?.includes('Servis')) return <Microscope className="w-3.5 h-3.5" />;
+    return <Sprout className="w-3.5 h-3.5" />;
+  };
+
   // Kateqoriyaları obyekt → string-ə çeviririk
   const activeCategories = (Array.isArray(categories) ? categories : [])
     .filter(c => c && c.id !== 'all')
@@ -115,7 +131,7 @@ export default function FilterSidebar({
         <div className="space-y-1 max-h-56 overflow-y-auto pr-1 text-xs no-scrollbar">
           {activeCategories.map((cat) => {
             const catName = String(cat.name || '');
-            const catIcon = String(cat.icon || '🌱');
+            const catIcon = getCategoryIcon(catName);
             const isSelected = selectedCategory === catName;
             return (
               <button
@@ -128,7 +144,7 @@ export default function FilterSidebar({
                 }`}
               >
                 <span className="truncate flex items-center gap-1.5">
-                  <span>{catIcon}</span>
+                  <span className={`${isSelected ? 'text-emerald-700' : 'text-emerald-600'}`}>{catIcon}</span>
                   <span>{catName}</span>
                 </span>
                 {isSelected && (

@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useState } from 'react';
+import { Heart, MapPin, Phone, MessageCircle } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
 export default function ProductDetailPage({
@@ -126,7 +127,7 @@ export default function ProductDetailPage({
               : 'bg-white border-gray-200 text-gray-500 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50'
           }`}
         >
-          <span className="text-sm leading-none">{isFavorite ? '❤️' : '🤍'}</span>
+          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current text-rose-500' : 'text-gray-400'}`} />
           <span className="hidden sm:inline">{isFavorite ? 'Sevimlilərdən sil' : 'Sevimlilərə əlavə et'}</span>
         </button>
 
@@ -157,8 +158,8 @@ export default function ProductDetailPage({
             </div>
 
             <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs text-white font-medium">
-              <span className="backdrop-blur-md bg-black/50 px-2.5 py-1 rounded-xl">
-                📍 {product.location}
+              <span className="backdrop-blur-md bg-black/50 px-2.5 py-1 rounded-xl flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" /> {product.location}
               </span>
               <span className="backdrop-blur-md bg-black/50 px-2.5 py-1 rounded-xl">
                 İstehsal: {product.year}
@@ -208,7 +209,7 @@ export default function ProductDetailPage({
                   href={`tel:${product.seller.phone}`}
                   className="py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-bold text-xs flex items-center justify-center gap-1.5 transition"
                 >
-                  📞 <span>Zəng Et</span>
+                  <Phone className="w-4 h-4" /> <span>Zəng Et</span>
                 </a>
                 <a
                   href={`https://wa.me/${product.seller.whatsapp}?text=${encodeURIComponent(`Salam, "${product.title}" elanı ilə bağlı yazıram.`)}`}
@@ -216,7 +217,7 @@ export default function ProductDetailPage({
                   rel="noreferrer"
                   className="py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-xs"
                 >
-                  💬 <span>WhatsApp</span>
+                  <MessageCircle className="w-4 h-4" /> <span>WhatsApp</span>
                 </a>
               </div>
             </div>
