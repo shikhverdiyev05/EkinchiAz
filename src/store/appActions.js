@@ -117,7 +117,7 @@ export function handleAddToCart(dispatch, product, currentUser) {
     return;
   }
   dispatch({ type: A.ADD_CART, product });
-  showToast(dispatch, `"${(product.title || 'Məhsul').slice(0, 20)}…" səbətə atıldı!`);
+  showToast(dispatch, `Səbətə əlavə olundu`);
 }
 
 export function syncCartEffect(userId, cartItems) {
@@ -140,7 +140,7 @@ export async function handleCheckout(dispatch, newOrder, currentUser) {
   }
   dispatch({ type: A.CLEAR_CART });
   dispatch({ type: A.TOGGLE_CART }); // close
-  showToast(dispatch, 'Sifarişiniz uğurla rəsmiləşdirildi!');
+  showToast(dispatch, 'Sifariş tamamlandı');
 }
 
 // ─── Favorites Handlers ───────────────────────────────────────────────────
@@ -151,7 +151,7 @@ export function handleToggleFavorite(dispatch, productId, currentUser, currentFa
   }
   const isIn = (Array.isArray(currentFavs) ? currentFavs : []).includes(productId);
   dispatch({ type: A.TOGGLE_FAVORITE, id: productId });
-  showToast(dispatch, isIn ? 'Elan sevimlilərdən silindi' : 'Elan sevimlilərə əlavə edildi');
+  showToast(dispatch, isIn ? 'Sevimlilərdən silindi' : 'Sevimlilərə əlavə olundu');
 }
 
 export function syncFavoritesEffect(userId, favorites) {
@@ -169,7 +169,7 @@ export async function handleSubmitBooking(dispatch, bookingData, userId) {
     console.error('İcarə sifarişi Firestore-a yazılmadı:', err);
   }
   dispatch({ type: A.CLOSE_RENT_MODAL });
-  showToast(dispatch, 'İcarə sorğunuz göndərildi!');
+  showToast(dispatch, 'Sorğu göndərildi');
 }
 
 // ─── Contact Message ─────────────────────────────────────────────────────
@@ -186,14 +186,14 @@ export async function handleSendContact(dispatch, msgData, currentUser, product)
     console.error('Mesaj Firestore-a yazılmadı:', err);
   }
   dispatch({ type: A.CLOSE_CONTACT_MODAL });
-  showToast(dispatch, 'Mesajınız satıcıya çatdırıldı!');
+  showToast(dispatch, 'Mesaj göndərildi');
 }
 
 // ─── Listing Handlers ────────────────────────────────────────────────────
 export function handleAddProductSubmit(dispatch, newProduct) {
   dispatch({ type: A.ADD_PRODUCT, product: newProduct });
   navigateTo(dispatch, 'product-detail', newProduct);
-  showToast(dispatch, 'Təbriklər! Elanınız uğurla paylaşıldı!');
+  showToast(dispatch, 'Paylaşıldı');
 }
 
 export function handleAddListingClick(dispatch, currentUser) {

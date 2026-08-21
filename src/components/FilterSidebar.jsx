@@ -92,7 +92,7 @@ export default function FilterSidebar({
         <div className="grid grid-cols-3 gap-1 bg-emerald-50/80 p-1 rounded-2xl border border-emerald-100">
           <button
             onClick={() => setSelectedType('all')}
-            className={`py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
+            className={`py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
               selectedType === 'all'
                 ? 'bg-emerald-600 text-white shadow-xs'
                 : 'text-gray-600 hover:text-emerald-800'
@@ -102,58 +102,47 @@ export default function FilterSidebar({
           </button>
           <button
             onClick={() => setSelectedType('sale')}
-            className={`py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
+            className={`py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
               selectedType === 'sale'
                 ? 'bg-emerald-600 text-white shadow-xs'
                 : 'text-gray-600 hover:text-emerald-800'
             }`}
           >
-            🌱 Satış
+            <Sprout className="w-3.5 h-3.5" /> Satış
           </button>
           <button
             onClick={() => setSelectedType('rent')}
-            className={`py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
+            className={`py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
               selectedType === 'rent'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'text-gray-600 hover:text-blue-800'
             }`}
           >
-            🚜 İcarə
+            <Tractor className="w-3.5 h-3.5" /> İcarə
           </button>
         </div>
       </div>
 
       {/* 2. Categories List */}
       <div>
-        <label className="block text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700 mb-2">
+        <label className="block text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700 mb-1.5">
           Kateqoriyalar ({activeCategories.length})
         </label>
-        <div className="space-y-1 max-h-56 overflow-y-auto pr-1 text-xs no-scrollbar">
-          {activeCategories.map((cat) => {
+        <select
+          value={selectedCategory || 'all'}
+          onChange={(e) => setSelectedCategory(e.target.value === 'all' ? '' : e.target.value)}
+          className="w-full px-3 py-2 sm:py-2.5 rounded-2xl bg-white border border-emerald-100 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500 shadow-xs"
+        >
+          <option value="all">Bütün Kateqoriyalar (Hamısı)</option>
+          {activeCategories.map((cat, idx) => {
             const catName = String(cat.name || '');
-            const catIcon = getCategoryIcon(catName);
-            const isSelected = selectedCategory === catName;
             return (
-              <button
-                key={cat.id || catName}
-                onClick={() => setSelectedCategory(catName)}
-                className={`w-full text-left px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl transition flex items-center justify-between text-xs ${
-                  isSelected
-                    ? 'bg-emerald-100 text-emerald-900 font-black'
-                    : 'text-gray-600 hover:bg-emerald-50 font-medium'
-                }`}
-              >
-                <span className="truncate flex items-center gap-1.5">
-                  <span className={`${isSelected ? 'text-emerald-700' : 'text-emerald-600'}`}>{catIcon}</span>
-                  <span>{catName}</span>
-                </span>
-                {isSelected && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0 ml-1"></span>
-                )}
-              </button>
+              <option key={cat.id || idx} value={catName}>
+                {catName}
+              </option>
             );
           })}
-        </div>
+        </select>
       </div>
 
       {/* 3. Region Filter (Məkan / Rayon) */}
@@ -214,38 +203,6 @@ export default function FilterSidebar({
               <span className="absolute right-2 top-2 text-[10px] font-bold text-gray-400">AZN</span>
             </div>
           </div>
-        </div>
-
-        {/* Sürətli Büdcə Teqləri */}
-        <div className="flex flex-wrap gap-1 pt-1">
-          <button
-            type="button"
-            onClick={() => handleQuickBudget(0, 50)}
-            className="px-2 py-1 rounded-lg bg-gray-50 hover:bg-emerald-50 hover:text-emerald-800 text-[10px] font-bold text-gray-600 border border-gray-200 transition"
-          >
-            50 AZN-dək
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickBudget(50, 500)}
-            className="px-2 py-1 rounded-lg bg-gray-50 hover:bg-emerald-50 hover:text-emerald-800 text-[10px] font-bold text-gray-600 border border-gray-200 transition"
-          >
-            50 - 500 AZN
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickBudget(500, 5000)}
-            className="px-2 py-1 rounded-lg bg-gray-50 hover:bg-emerald-50 hover:text-emerald-800 text-[10px] font-bold text-gray-600 border border-gray-200 transition"
-          >
-            500 - 5,000 AZN
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickBudget('', '')}
-            className="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200 transition"
-          >
-            Hamısı
-          </button>
         </div>
       </div>
 

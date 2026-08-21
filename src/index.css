@@ -271,21 +271,22 @@ input[type="file"]::file-selector-button {
 
 /* Custom scrollbar for category slider */
 .custom-scrollbar { overflow-x: auto; overflow-y: hidden; }
-.custom-scrollbar::-webkit-scrollbar { height: 5px; }
+.custom-scrollbar::-webkit-scrollbar { height: 3px; }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f0fdf4;
-  border-radius: 99px;
-  margin: 0 4px;
+  background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to right, #34d399, #10b981);
+  background: rgba(16, 185, 129, 0.4);
   border-radius: 99px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to right, #10b981, #059669);
+  background: rgba(16, 185, 129, 0.8);
+}
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
 }
 /* Firefox */
-.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #34d399 #f0fdf4; }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.5) transparent; }
 /* Prevent card click on drag */
 .custom-scrollbar.cursor-grabbing * { user-select: none; pointer-events: none; }
 

@@ -1,3 +1,5 @@
+import { Heart, MapPin } from 'lucide-react';
+
 export default function ProductCard({ 
   product, 
   onViewDetails, 
@@ -72,16 +74,16 @@ export default function ProductCard({
 
             <button
               onClick={handleFavoriteClick}
-              className={`p-2 rounded-full backdrop-blur-md transition-all ${
-                isFavorite ? 'bg-rose-500 text-white shadow-md' : 'bg-white/80 text-gray-700 hover:text-rose-500'
+              className={`p-2 rounded-full backdrop-blur-md transition-all flex items-center justify-center ${
+                isFavorite ? 'bg-rose-500 text-white shadow-md' : 'bg-white/80 text-gray-400 hover:text-rose-500'
               }`}
             >
-              ❤️
+              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
             </button>
           </div>
 
           <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-[11px] text-white font-medium pointer-events-none">
-            <span className="backdrop-blur-md bg-black/40 px-2 py-0.5 rounded-lg">📍 {product.location || 'Azərbaycan'}</span>
+            <span className="backdrop-blur-md bg-black/40 px-2 py-0.5 rounded-lg flex items-center gap-1"><MapPin className="w-3 h-3" /> {product.location || 'Azərbaycan'}</span>
             <span className="backdrop-blur-md bg-black/40 px-2 py-0.5 rounded-lg">İl: {product.year || 2024}</span>
           </div>
         </div>

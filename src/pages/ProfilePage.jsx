@@ -148,7 +148,7 @@ export default function ProfilePage({
             </div>
 
             <p className="text-xs text-gray-600 break-words flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              <span>{user?.email || 'istifadeci@aqrobazar.az'}</span>
+              <span>{user?.email || 'istifadeci@Ekinchi.Az.az'}</span>
               <span className="hidden sm:inline text-gray-300">•</span>
               <span className="font-semibold text-gray-700">{user?.phone || '+994 50 000 00 00'}</span>
             </p>
