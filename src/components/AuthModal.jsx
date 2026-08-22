@@ -55,6 +55,11 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMessa
     if (fieldName === 'password') {
       if (!value) {
         error = 'Şifrə mütləq daxil edilməlidir';
+      } else if (tab === 'register') {
+        const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+        if (!strongPasswordRegex.test(value)) {
+          error = 'Şifrə ən azı 8 simvol, 1 böyük hərf, 1 rəqəm və 1 xüsusi simvoldan ibarət olmalıdır';
+        }
       } else if (value.length < 6) {
         error = 'Şifrə ən azı 6 simvoldan ibarət olmalıdır';
       }

@@ -1,14 +1,29 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
-export default function RentalBookingModal({ isOpen, product, onClose, onSubmitBooking }) {
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('+994 ');
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [durationCount, setDurationCount] = useState(1);
-  const [durationUnit, setDurationUnit] = useState('gün'); // 'gün' | 'həftə' | 'ay' | 'il'
-  const [locationNote, setLocationNote] = useState('');
-  const [notes, setNotes] = useState('');
+export default function RentalBookingModal({ isOpen, product, existingBooking, onClose, onSubmitBooking }) {
+  const [fullName, setFullName] = useState(existingBooking?.fullName || '');
+  const [phone, setPhone] = useState(existingBooking?.phone || '+994 ');
+  const [startDate, setStartDate] = useState(existingBooking?.startDate || (() => new Date().toISOString().split('T')[0]));
+  const [durationCount, setDurationCount] = useState(existingBooking?.durationCount || 1);
+  const [durationUnit, setDurationUnit] = useState(existingBooking?.durationUnit || 'gün'); // 'gün' | 'həftə' | 'ay' | 'il'
+  const [locationNote, setLocationNote] = useState(existingBooking?.locationNote || '');
+  const [notes, setNotes] = useState(existingBooking?.notes || '');
   
+  useEffect(() => {
+    if (isOpen) {
+      setFullName(existingBooking?.fullName || '');
+      setPhone(existingBooking?.phone || '+994 ');
+      setStartDate(existingBooking?.startDate || new Date().toISOString().split('T')[0]);
+      setDurationCount(existingBooking?.durationCount || 1);
+      setDurationUnit(existingBooking?.durationUnit || 'gün');
+      setLocationNote(existingBooking?.locationNote || '');
+      setNotes(existingBooking?.notes || '');
+      setPhoneError('');
+      setNameError('');
+      setCountError('');
+    }
+  }, [isOpen, existingBooking]);
+
   const [phoneError, setPhoneError] = useState('');
   const [nameError, setNameError] = useState('');
   const [countError, setCountError] = useState('');
@@ -79,7 +94,8 @@ export default function RentalBookingModal({ isOpen, product, onClose, onSubmitB
     const durationText = `${durationCount} ${durationUnit}`;
 
     const bookingData = {
-      id: `rent-${Date.now()}`,
+      existingId: existingBooking?.id,
+      id: existingBooking?.id || `rent-${Date.now()}`,
       productId: product.id,
       productTitle: product.title,
       productImage: product.image,

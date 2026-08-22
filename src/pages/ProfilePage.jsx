@@ -7,7 +7,7 @@ import {
   Loader2, CheckCircle, AlertCircle, Trash2, ShoppingCart, Clock, Tractor, Wheat
 } from "lucide-react";
 import ProductCard from "../components/ProductCard";
-import { updateUserProfileApi, deleteProductApi } from "../services/apiService";
+import { updateUserProfileApi, deleteProductApi, deleteBookingApi } from "../services/apiService";
 import { uploadImageToImgBB } from "../services/imageService";
 
 const REGIONS = ["Baki","Abseron","Sumqayit","Gence","Quba","Qusar","Xacmaz","Sabran","Qebele","Seki","Zaqatala","Balaken","Qax","Berde","Terter","Agdam","Agcabedi","Yevlax","Kirdamir","Ucar","Goycay","Ismayilli","Samahi","Semkir","Tovuz","Qazax","Agstafa","Goranboy","Saatli","Sabirabad","Imisli","Bilasuvar","Celilabad","Masalli","Lenkaran","Astara","Lerik","Salyan","Neftcala","Naxcivan MR"];
@@ -55,7 +55,7 @@ export default function ProfilePage({
   userListings = [], rentalBookings = [], orders = [], favoriteProducts = [],
   onViewDetails, onAddToCart, onOpenRentModal, onOpenContactModal,
   onToggleFavorite, currentUser, onRequireAuth, onAddNewListing,
-  onUpdateUser, onDeleteListing
+  onUpdateUser, onDeleteListing, onCancelRental, onRenewRental
 }) {
   const [activeTab, setActiveTab] = useState("info");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -117,16 +117,18 @@ export default function ProfilePage({
   const handleCancelRental = async (id) => {
     if (!window.confirm("Bu icarə sorğusunu ləğv etmək istədiyinizdən əminsiniz?")) return;
     setCancelingId(id);
-    await new Promise(r => setTimeout(r, 700));
-    alert("İcarə sorğusu ləğv edildi.");
-    setCancelingId(null);
+    try {
+      await deleteBookingApi(id);
+      if (onCancelRental) onCancelRental(id);
+    } catch (err) {
+      alert("Ləğv edilərkən xəta baş verdi.");
+    } finally {
+      setCancelingId(null);
+    }
   };
 
-  const handleRenewRental = async (id) => {
-    setRenewingId(id);
-    await new Promise(r => setTimeout(r, 700));
-    alert("İcarə sorğusu yeniləndi.");
-    setRenewingId(null);
+  const handleRenewRental = (booking) => {
+    if (onRenewRental) onRenewRental(booking);
   };
 
   const SidebarContent = () => (
@@ -307,7 +309,7 @@ export default function ProfilePage({
                             <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold">İcarə</span>
                             <h4 className="text-sm font-bold text-gray-900">{b.productTitle || b.title}</h4>
                           </div>
-                          <p className="text-xs text-gray-500">Müddət: <strong>{b.days || 1} gün</strong> • Məkan: {b.locationNote || b.location || "—"}</p>
+                          <p className="text-xs text-gray-500">Müddət: <strong>{b.duration || (b.days ? b.days + ' gün' : '1 gün')}</strong> • Məkan: {b.locationNote || b.location || "—"}</p>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border inline-block ${b.status === "Təsdiqləndi" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : b.status === "Ləğv edildi" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
                             {b.status || "Təsdiq gözləyir"}
                           </span>
@@ -316,7 +318,7 @@ export default function ProfilePage({
                           <p className="text-lg font-black text-blue-900">{(Number(b.estimatedCost) || 0).toLocaleString()} AZN</p>
                           {b.status !== "Ləğv edildi" && (
                             <div className="flex gap-2">
-                              <button onClick={() => handleRenewRental(key)} disabled={renewingId === key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition disabled:opacity-50">
+                              <button onClick={() => handleRenewRental(b)} disabled={renewingId === key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition disabled:opacity-50">
                                 {renewingId === key ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Yenilə
                               </button>
                               <button onClick={() => handleCancelRental(key)} disabled={cancelingId === key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[11px] font-bold transition disabled:opacity-50">

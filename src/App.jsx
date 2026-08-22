@@ -222,9 +222,26 @@ export default function App() {
             }}
             onDeleteListing={(id) => {
               dispatch({ type: A.DEL_PRODUCT, id });
-              // toast
               dispatch({ type: A.SHOW_TOAST, message: 'Elanınız uğurla silindi' });
               setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000);
+            }}
+            onCancelRental={(id) => {
+              dispatch({ type: A.DEL_BOOKING, id });
+              dispatch({ type: A.SHOW_TOAST, message: 'İcarə sorğusu ləğv edildi' });
+              setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000);
+            }}
+            onRenewRental={(booking) => {
+              const productMock = {
+                id: booking.productId,
+                title: booking.productTitle || booking.title,
+                image: booking.productImage,
+                price: booking.productPrice || booking.price,
+                unit: booking.productUnit || booking.unit,
+                location: booking.locationNote || booking.location,
+                seller: { name: booking.sellerName },
+                existingBooking: booking
+              };
+              dispatch({ type: A.OPEN_RENT_MODAL, product: productMock });
             }}
           />
         )}
@@ -258,6 +275,7 @@ export default function App() {
       <RentalBookingModal
         isOpen={!!rentModalProduct}
         product={rentModalProduct}
+        existingBooking={rentModalProduct?.existingBooking}
         onClose={() => dispatch({ type: A.CLOSE_RENT_MODAL })}
         onSubmitBooking={(data) => handleSubmitBooking(dispatch, data, currentUser?.id)}
       />

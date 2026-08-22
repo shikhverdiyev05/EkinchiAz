@@ -46,6 +46,8 @@ export const A = {
   ADD_ORDER:    'ADD_ORDER',
   SET_BOOKINGS: 'SET_BOOKINGS',
   ADD_BOOKING:  'ADD_BOOKING',
+  UPDATE_BOOKING: 'UPDATE_BOOKING',
+  DEL_BOOKING:  'DEL_BOOKING',
 
   // Modals
   OPEN_RENT_MODAL:    'OPEN_RENT_MODAL',
@@ -193,6 +195,10 @@ export function appReducer(state, action) {
       return { ...state, rentalBookings: action.bookings };
     case A.ADD_BOOKING:
       return { ...state, rentalBookings: [action.booking, ...state.rentalBookings] };
+    case A.UPDATE_BOOKING:
+      return { ...state, rentalBookings: state.rentalBookings.map(b => b.id === action.booking.id ? action.booking : b) };
+    case A.DEL_BOOKING:
+      return { ...state, rentalBookings: state.rentalBookings.filter(b => b.id !== action.id) };
 
     /* ── Modals ── */
     case A.OPEN_RENT_MODAL:

@@ -433,13 +433,26 @@ export async function getUserBookingsApi(userId) {
 }
 
 export async function createBookingApi(bookingData) {
+  const { existingId, ...restData } = bookingData;
   const payload = {
-    ...bookingData,
-    createdAt: serverTimestamp(),
+    ...restData,
     status: 'Təsdiq gözləyir',
   };
-  const ref = await addDoc(collection(db, COL.BOOKINGS), payload);
-  return { id: ref.id, ...payload };
+  
+  if (existingId) {
+    const ref = doc(db, COL.BOOKINGS, existingId);
+    await updateDoc(ref, payload);
+    return { id: existingId, ...payload };
+  } else {
+    payload.createdAt = serverTimestamp();
+    const ref = await addDoc(collection(db, COL.BOOKINGS), payload);
+    return { id: ref.id, ...payload };
+  }
+}
+
+export async function deleteBookingApi(bookingId) {
+  if (!bookingId) return;
+  await deleteDoc(doc(db, COL.BOOKINGS, bookingId));
 }
 
 // ════════════════════════════════

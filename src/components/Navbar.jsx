@@ -92,7 +92,7 @@ export default function Navbar({
               onClick={() => handleNavClick('home')} 
               className="flex items-center gap-2 cursor-pointer group select-none flex-shrink-0"
             >
-              <img src="/src/assets/logowobg.png" alt="Ekinchi.Az" className="w-9 h-9 sm:w-11 sm:h-11 object-contain group-hover:scale-105 transition-all duration-300" />
+              <img src="/logowobg.png" alt="Ekinchi.Az" className="w-9 h-9 sm:w-11 sm:h-11 object-contain group-hover:scale-105 transition-all duration-300" />
               <div>
                 <div className="flex items-center gap-1">
                   <span className="text-lg sm:text-xl lg:text-2xl font-black bg-gradient-to-r from-emerald-950 via-emerald-700 to-green-600 bg-clip-text text-transparent tracking-tight transition-all duration-300">

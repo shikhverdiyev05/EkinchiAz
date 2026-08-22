@@ -185,7 +185,13 @@ export async function handleSubmitBooking(dispatch, bookingData, userId) {
   try {
     const payload = { ...bookingData, userId };
     const saved = await createBookingApi(payload);
-    dispatch({ type: A.ADD_BOOKING, booking: saved || payload });
+    
+    if (bookingData.existingId) {
+      dispatch({ type: A.UPDATE_BOOKING, booking: saved || payload });
+    } else {
+      dispatch({ type: A.ADD_BOOKING, booking: saved || payload });
+    }
+    
     dispatch({ type: A.CLOSE_RENT_MODAL });
     showToast(dispatch, 'İcarə sorğusu uğurla göndərildi');
   } catch (err) {
