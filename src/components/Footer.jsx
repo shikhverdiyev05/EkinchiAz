@@ -4,6 +4,7 @@ import {
   FlaskConical, TreeDeciduous, Wheat, Tractor, Map, Wrench, 
   List, PlusCircle, MessageSquare, Info, HelpCircle
 } from 'lucide-react';
+import LogoImg from '../assets/logowobg.png';
 
 // Sosial media ikonları üçün yığcam SVG komponentləri
 const FbIcon = () => (
@@ -63,7 +64,7 @@ export default function Footer({ onNavigate, onSelectCategory }) {
           {/* Sütun 1: Logo & Haqqında */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => onNavigate('home')}>
-              <img src="/logowobg.png" alt="Ekinchi.Az" className="w-11 h-11 object-contain" />
+              <img src={LogoImg} alt="Ekinchi.Az" className="w-11 h-11 object-contain" />
               <div>
                 <span className="text-2xl font-black text-white tracking-tight block">
                   Ekinchi.Az
