@@ -350,30 +350,18 @@ export async function getCategoriesApi() {
   try {
     const snap = await getDocs(collection(db, COL.CATEGORIES));
     const cloudCats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    if (cloudCats.length === 0) {
-      return DEFAULT_CATEGORIES;
-    }
-
-    // Əgər buludda kateqoriyalar varsa, onları DEFAULT ilə birləşdir
-    const merged = [...cloudCats];
-    DEFAULT_CATEGORIES.forEach(defCat => {
-      if (!merged.some(c => c.name === defCat.name || c.id === defCat.id)) {
-        merged.push(defCat);
-      }
-    });
-
-    return merged;
+    
+    return cloudCats;
   } catch (err) {
-    console.error('getCategoriesApi error, returning default categories:', err);
-    return DEFAULT_CATEGORIES;
+    console.error('getCategoriesApi error:', err);
+    return [];
   }
 }
 
 export async function getRegionsApi() {
   try {
     const snap = await getDocs(collection(db, COL.REGIONS));
-    const regionsList = new Set(DEFAULT_REGIONS);
+    const regionsList = new Set(); // Sırf Firebase-dən oxunacaq
 
     snap.docs.forEach(docSnap => {
       const data = docSnap.data();
@@ -395,8 +383,8 @@ export async function getRegionsApi() {
 
     return Array.from(regionsList).filter(r => r && r !== 'Hamısı' && r !== 'all');
   } catch (err) {
-    console.error('getRegionsApi error, returning default regions:', err);
-    return DEFAULT_REGIONS;
+    console.error('getRegionsApi error:', err);
+    return [];
   }
 }
 

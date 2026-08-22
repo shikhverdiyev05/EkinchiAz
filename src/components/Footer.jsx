@@ -257,10 +257,13 @@ export default function Footer({ onNavigate, onSelectCategory }) {
           <p className="text-center sm:text-left">
             © 2026 <strong>Ekinchi.Az</strong>. Bütün hüquqlar qorunur. Azərbaycanın aqrar inkişafı üçün hazırlandı.
           </p>
-          <div className="flex flex-wrap justify-center gap-5 sm:gap-6 text-emerald-300/80 font-medium">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-6 text-emerald-300/80 font-medium">
             <button onClick={() => onNavigate('about')} className="hover:text-white transition">Haqqımızda</button>
             <button onClick={() => onNavigate('faq')} className="hover:text-white transition">Qaydalar & FAQ</button>
             <button onClick={() => onNavigate('contact')} className="hover:text-white transition">Bizimlə Əlaqə</button>
+            <span className="hidden sm:inline text-emerald-900/50">|</span>
+            <button onClick={() => alert('Məxfilik Siyasəti səhifəsi hazırlanır.')} className="hover:text-white transition">Məxfilik Siyasəti</button>
+            <button onClick={() => alert('İstifadə Şərtləri səhifəsi hazırlanır.')} className="hover:text-white transition">İstifadə Şərtləri</button>
           </div>
         </div>
 

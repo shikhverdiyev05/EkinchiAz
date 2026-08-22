@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { FlaskConical, TreeDeciduous, Wheat, ShieldCheck, Tractor, Map as MapIcon, Wrench, Bird, ShoppingBasket, Microscope, Sprout, ChevronLeft, ChevronRight, Star, Quote, UserPlus, Megaphone, CheckCircle } from 'lucide-react';
 import HeroSection from '../components/HeroSection';
 import ProductCard from '../components/ProductCard';
