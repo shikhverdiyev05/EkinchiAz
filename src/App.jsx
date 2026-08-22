@@ -53,33 +53,51 @@ export default function App() {
     toast,
   } = state;
 
-  // ── İlkin API məlumatları ─────────────────────────────────────────────
   useEffect(() => {
     loadInitialData(dispatch);
 
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash.startsWith('mehsul-')) {
-        const prodId = hash.replace('mehsul-', '');
-        // products state-i bu zaman boş ola bilər, buna görə callback istifadə et
-        dispatch((getState) => {
-          const found = getState().products.find(p => p.id === prodId);
-          if (found) {
-            return [
-              { type: A.SET_SELECTED_PRODUCT, product: found },
-              { type: A.SET_PAGE, page: 'product-detail' },
-            ];
-          }
-        });
-        return;
-      }
-      const validPages = ['home','listings','add-listing','profile','about','faq','contact','social'];
-      if (validPages.includes(hash)) dispatch({ type: A.SET_PAGE, page: hash });
+    const routeToPageMap = {
+      '/': 'home',
+      '/elanlar': 'listings',
+      '/yeni-elan': 'add-listing',
+      '/profil': 'profile',
+      '/haqqimizda': 'about',
+      '/faq': 'faq',
+      '/elaqe': 'contact',
+      '/sosial': 'social'
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path.startsWith('/mehsul/')) {
+        const prodId = path.replace('/mehsul/', '');
+        dispatch({ type: A.SET_PAGE, page: 'product-detail' });
+        // Setting the selected product will be handled by the next useEffect when products array is loaded
+        return;
+      }
+      const mappedPage = routeToPageMap[path] || 'home';
+      dispatch({ type: A.SET_PAGE, page: mappedPage });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // ── Səhifə birbaşa məhsul linki ilə (deep link) açılanda məhsulu tap ──
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/mehsul/') && products.length > 0 && !selectedProduct) {
+      const prodId = path.replace('/mehsul/', '');
+      const found = products.find(p => p.id === prodId);
+      if (found) {
+        dispatch({ type: A.SET_SELECTED_PRODUCT, product: found });
+      } else {
+        // If product not found, fallback to listings
+        window.history.replaceState(null, '', '/elanlar');
+        dispatch({ type: A.SET_PAGE, page: 'listings' });
+      }
+    }
+  }, [products, selectedProduct]);
 
   // ── Giriş etmiş istifadəçinin məlumatları ────────────────────────────
   useEffect(() => {
@@ -152,6 +170,7 @@ export default function App() {
             regions={regions}
             onNavigateListings={(f) => handleNavigateListings(dispatch, f)}
             onSelectCategory={(catName) => handleNavigateListings(dispatch, { category: catName })}
+            onAddListingClick={() => handleAddListingClick(dispatch, currentUser)}
           />
         )}
 

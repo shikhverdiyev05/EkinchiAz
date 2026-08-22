@@ -3,8 +3,10 @@ import {
   Info, Users, Target, Heart, Clock, Handshake, ChevronDown,
   Sprout, Tractor, ShoppingBasket, Cpu, Globe, Leaf, Star, CheckCircle,
   FlaskConical, Wheat, TreeDeciduous, MapPin, Phone, Mail,
-  ArrowRight, Zap, Shield, TrendingUp, Award, MessageCircle
+  ArrowRight, Zap, Shield, TrendingUp, Award, MessageCircle,
+  ChevronLeft, ChevronRight, AlertCircle, Loader2
 } from 'lucide-react';
+import { sendContactMessageApi } from '../services/apiService';
 
 /* ════════════════════════════════════════════════════════════════════
    DATA
@@ -106,6 +108,25 @@ function PartnerSlider() {
 export function AboutPage() {
   const [active, setActive] = useState('melumat');
   const refs = Object.fromEntries(NAV_ITEMS.map(n => [n.id, useRef(null)]));
+  
+  const teamScrollRef = useRef(null);
+  const [activeTeamDot, setActiveTeamDot] = useState(0);
+
+  const handleTeamScroll = () => {
+    if (!teamScrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = teamScrollRef.current;
+    if (scrollWidth <= clientWidth) return;
+    const progress = scrollLeft / (scrollWidth - clientWidth);
+    const index = Math.round(progress * (TEAM.length - 1));
+    setActiveTeamDot(index);
+  };
+
+  const scrollTeamTo = (index) => {
+    if (!teamScrollRef.current) return;
+    const { scrollWidth, clientWidth } = teamScrollRef.current;
+    const targetScroll = (index / (TEAM.length - 1)) * (scrollWidth - clientWidth);
+    teamScrollRef.current.scrollTo({ left: targetScroll, behavior: 'smooth' });
+  };
 
   const scrollTo = (id) => {
     setActive(id);
@@ -258,12 +279,17 @@ export function AboutPage() {
                 çevik komanda durur. Hər üzv platformanın müvəffəqiyyəti üçün öz ekspertizasını tam gücü ilə ortaya qoyur.
               </p>
 
-              <div className="relative w-full overflow-hidden">
+              <div className="relative w-full overflow-hidden group/team">
                 {/* Fade edges */}
                 <div className="absolute top-0 bottom-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-gray-50/50 to-transparent z-10 pointer-events-none" />
                 <div className="absolute top-0 bottom-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-gray-50/50 to-transparent z-10 pointer-events-none" />
 
-                <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div 
+                  ref={teamScrollRef}
+                  onScroll={handleTeamScroll}
+                  className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 px-2 [&::-webkit-scrollbar]:hidden" 
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
                   {TEAM.map((m, i) => (
                     <div key={i} className="relative shrink-0 w-[240px] h-[320px] rounded-[32px] overflow-hidden snap-center group shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-50">
                       <img 
@@ -277,6 +303,40 @@ export function AboutPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+                
+                {/* Naviqasiya oxları və nöqtələr */}
+                <div className="flex items-center justify-center gap-4 mt-2">
+                  <button 
+                    onClick={() => scrollTeamTo(Math.max(0, activeTeamDot - 1))}
+                    disabled={activeTeamDot === 0}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-gray-500 hover:text-emerald-600 hover:border-emerald-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-5 h-5 -ml-0.5" />
+                  </button>
+                  
+                  <div className="flex items-center gap-2">
+                    {TEAM.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollTeamTo(idx)}
+                        className={`transition-all duration-300 rounded-full ${
+                          idx === activeTeamDot 
+                            ? 'w-6 h-2 bg-emerald-500 shadow-sm' 
+                            : 'w-2 h-2 bg-gray-300 hover:bg-emerald-300'
+                        }`}
+                        aria-label={`Komanda üzvü ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+
+                  <button 
+                    onClick={() => scrollTeamTo(Math.min(TEAM.length - 1, activeTeamDot + 1))}
+                    disabled={activeTeamDot === TEAM.length - 1}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 text-gray-500 hover:text-emerald-600 hover:border-emerald-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-5 h-5 ml-0.5" />
+                  </button>
                 </div>
               </div>
             </section>
@@ -598,6 +658,109 @@ export function FaqPage() {
 ═══════════════════════════════════════════════════════════════════ */
 export function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
+  const validate = (name, value) => {
+    let error = '';
+    switch (name) {
+      case 'firstName':
+      case 'lastName':
+        if (!value.trim()) error = 'Bu xana doldurulmalıdır';
+        else if (/\d/.test(value)) error = 'Rəqəm daxil etmək olmaz';
+        else if (!/^[A-Za-zƏəŞşÇçÖöĞğIıİi\s\-]+$/.test(value)) error = 'Yalnız hərflərdən istifadə edin';
+        break;
+      case 'email':
+        if (!value.trim()) error = 'Email daxil edilməlidir';
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = 'Düzgün email formatı deyil';
+        break;
+      case 'phone':
+        if (!value.trim()) error = 'Nömrə daxil edilməlidir';
+        else {
+          const digits = value.replace(/\D/g, '');
+          if (digits.length !== 9 && digits.length !== 10) error = 'Nömrə tam deyil (məs: 55 123 45 67)';
+        }
+        break;
+      case 'message':
+        if (!value.trim()) error = 'Mesaj daxil edilməlidir';
+        else if (value.trim().length < 10) error = 'Mesaj ən azı 10 simvol olmalıdır';
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    let val = value;
+    if (name === 'phone') {
+      val = val.replace(/[^\d\s-]/g, ''); // Hərfləri dərhal sil
+    } else if (name === 'firstName' || name === 'lastName') {
+      val = val.replace(/[\d]/g, ''); // Rəqəmləri dərhal sil
+    }
+
+    setFormData(prev => ({ ...prev, [name]: val }));
+    
+    if (touched[name]) {
+      setErrors(prev => ({ ...prev, [name]: validate(name, val) }));
+    }
+    if (apiError) setApiError(null);
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setErrors(prev => ({ ...prev, [name]: validate(name, value) }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const newErrors = {};
+    Object.keys(formData).forEach(key => {
+      newErrors[key] = validate(key, formData[key]);
+      touched[key] = true;
+    });
+    
+    setErrors(newErrors);
+    setTouched({ ...touched });
+
+    if (Object.values(newErrors).some(err => err !== '')) {
+      return;
+    }
+
+    setLoading(true);
+    setApiError(null);
+    try {
+      await sendContactMessageApi({
+        type: 'contact_page',
+        senderName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        email: formData.email.trim(),
+        phone: `+994${formData.phone.replace(/\D/g, '')}`,
+        message: formData.message.trim(),
+      });
+      setSent(true);
+    } catch (err) {
+      console.error('Mesaj göndərilmədi:', err);
+      setApiError('Xəta baş verdi. Zəhmət olmasa daha sonra yenidən cəhd edin.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 lg:py-20 animate-fadeIn">
       {/* Header */}
@@ -620,38 +783,57 @@ export function ContactPage() {
               <p className="text-sm font-bold text-emerald-800/70">
                 Təşəkkür edirik. Komandamız sizinlə tezliklə əlaqə saxlayacaq.
               </p>
+              <button 
+                onClick={() => { setSent(false); setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' }); setTouched({}); setErrors({}); }}
+                className="mt-6 px-6 py-2 rounded-xl bg-white border border-emerald-200 text-emerald-700 text-sm font-bold hover:bg-emerald-100 transition-colors"
+              >
+                Yeni mesaj göndər
+              </button>
             </div>
           ) : (
-            <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {apiError && (
+                <div className="flex items-center gap-2 p-4 text-sm font-bold text-red-700 bg-red-50 border border-red-200 rounded-xl">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <p>{apiError}</p>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-bold text-gray-700">Ad</label>
-                  <input required type="text" placeholder="Adınız" className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-semibold" />
+                  <input required name="firstName" value={formData.firstName} onChange={handleChange} onBlur={handleBlur} type="text" placeholder="Adınız" className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${errors.firstName && touched.firstName ? 'border-red-400 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                  {errors.firstName && touched.firstName && <p className="text-xs text-red-500 font-bold mt-1 pl-1">{errors.firstName}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-sm font-bold text-gray-700">Soyad</label>
-                  <input required type="text" placeholder="Soyadınız" className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-semibold" />
+                  <input required name="lastName" value={formData.lastName} onChange={handleChange} onBlur={handleBlur} type="text" placeholder="Soyadınız" className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${errors.lastName && touched.lastName ? 'border-red-400 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                  {errors.lastName && touched.lastName && <p className="text-xs text-red-500 font-bold mt-1 pl-1">{errors.lastName}</p>}
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-bold text-gray-700">Email</label>
-                <input required type="email" placeholder="siz@sirket.com" className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-semibold" />
+                <input required name="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} type="email" placeholder="siz@sirket.com" className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${errors.email && touched.email ? 'border-red-400 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
+                {errors.email && touched.email && <p className="text-xs text-red-500 font-bold mt-1 pl-1">{errors.email}</p>}
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-bold text-gray-700">Əlaqə nömrəsi</label>
                 <div className="flex gap-2">
-                  <div className="shrink-0 flex items-center justify-center px-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 font-bold text-sm">
-                    AZE
+                  <div className="shrink-0 flex items-center justify-center px-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 font-bold text-sm">
+                    +994
                   </div>
-                  <input required type="tel" placeholder="+994 (55) 000-0000" className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-semibold" />
+                  <input required name="phone" value={formData.phone} onChange={handleChange} onBlur={handleBlur} type="tel" placeholder="55 123 45 67" className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold ${errors.phone && touched.phone ? 'border-red-400 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`} />
                 </div>
+                {errors.phone && touched.phone && <p className="text-xs text-red-500 font-bold mt-1 pl-1">{errors.phone}</p>}
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-bold text-gray-700">Mesajınız</label>
-                <textarea rows="5" required placeholder="Mesajınızı bura yazın..." className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-semibold resize-none"></textarea>
+                <textarea name="message" value={formData.message} onChange={handleChange} onBlur={handleBlur} rows="5" required placeholder="Mesajınızı bura yazın..." className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm font-semibold resize-none ${errors.message && touched.message ? 'border-red-400 focus:ring-2 focus:ring-red-500/20' : 'border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'}`}></textarea>
+                {errors.message && touched.message && <p className="text-xs text-red-500 font-bold mt-1 pl-1">{errors.message}</p>}
               </div>
-              <button type="submit" className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all active:scale-[0.98]">
-                Mesajı göndər
+              <button disabled={loading} type="submit" className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {loading ? 'Göndərilir...' : 'Mesajı göndər'}
               </button>
             </form>
           )}

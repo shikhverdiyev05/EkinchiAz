@@ -560,7 +560,10 @@ export async function getPostsApi() {
 function generateToken(user) {
   const toB64 = (str) => {
     try { return btoa(unescape(encodeURIComponent(str))); }
-    catch { return btoa(str.replace(/[^\x00-\x7F]/g, '')); }
+    catch { 
+      // eslint-disable-next-line no-control-regex
+      return btoa(str.replace(/[^\x00-\x7F]/g, '')); 
+    }
   };
   const header  = toB64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const payload = toB64(JSON.stringify({

@@ -59,12 +59,22 @@ export const A = {
 };
 
 // ─── Initial State ────────────────────────────────────────────────────────
-const VALID_PAGES = ['home','listings','product-detail','add-listing','profile','about','faq','contact','social'];
+const routeToPageMap = {
+  '/': 'home',
+  '/elanlar': 'listings',
+  '/yeni-elan': 'add-listing',
+  '/profil': 'profile',
+  '/haqqimizda': 'about',
+  '/faq': 'faq',
+  '/elaqe': 'contact',
+  '/sosial': 'social'
+};
 
 function getInitialPage() {
   if (typeof window === 'undefined') return 'home';
-  const hash = window.location.hash.replace('#', '');
-  return VALID_PAGES.includes(hash) ? hash : 'home';
+  const path = window.location.pathname;
+  if (path.startsWith('/mehsul/')) return 'product-detail';
+  return routeToPageMap[path] || 'home';
 }
 
 export const initialState = {

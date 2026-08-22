@@ -29,14 +29,32 @@ export function showToast(dispatch, message) {
 }
 
 // ─── Navigation ─────────────────────────────────────────────────────────
+export const pageToRouteMap = {
+  'home': '/',
+  'listings': '/elanlar',
+  'add-listing': '/yeni-elan',
+  'profile': '/profil',
+  'about': '/haqqimizda',
+  'faq': '/faq',
+  'contact': '/elaqe',
+  'social': '/sosial'
+};
+
 export function navigateTo(dispatch, page, product = null) {
   dispatch({ type: A.SET_PAGE, page });
+  
+  let path = '/';
   if (page === 'product-detail' && product) {
     dispatch({ type: A.SET_SELECTED_PRODUCT, product });
-    window.location.hash = `mehsul-${product.id}`;
-  } else {
-    window.location.hash = page === 'home' ? '' : page;
+    path = `/mehsul/${product.id}`;
+  } else if (pageToRouteMap[page]) {
+    path = pageToRouteMap[page];
   }
+
+  if (window.location.pathname !== path) {
+    window.history.pushState(null, '', path);
+  }
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -58,6 +76,7 @@ export async function loadInitialData(dispatch) {
     dispatch({ type: A.SET_REGIONS,    regions:    Array.isArray(apiRegions)  ? apiRegions  : [] });
   } catch (err) {
     console.error('API data loading error:', err);
+    showToast(dispatch, 'Məlumatları yükləmək mümkün olmadı');
   } finally {
     dispatch({ type: A.SET_LOADING, value: false });
   }
@@ -84,6 +103,7 @@ export async function loadUserData(dispatch, user, currentCart = [], currentFavs
     }
   } catch (err) {
     console.error('İstifadəçi məlumatları yüklənmədi:', err);
+    showToast(dispatch, 'Profil məlumatları tam yüklənmədi');
   }
 }
 
@@ -135,12 +155,13 @@ export async function handleCheckout(dispatch, newOrder, currentUser) {
     };
     const saved = await createOrderApi(payload);
     dispatch({ type: A.ADD_ORDER, order: saved || payload });
+    dispatch({ type: A.CLEAR_CART });
+    dispatch({ type: A.TOGGLE_CART }); // close
+    showToast(dispatch, 'Sifariş uğurla tamamlandı');
   } catch (err) {
     console.error('Sifariş Firestore-a yazılmadı:', err);
+    showToast(dispatch, 'Xəta baş verdi, zəhmət olmasa yenidən cəhd edin');
   }
-  dispatch({ type: A.CLEAR_CART });
-  dispatch({ type: A.TOGGLE_CART }); // close
-  showToast(dispatch, 'Sifariş tamamlandı');
 }
 
 // ─── Favorites Handlers ───────────────────────────────────────────────────
@@ -165,11 +186,12 @@ export async function handleSubmitBooking(dispatch, bookingData, userId) {
     const payload = { ...bookingData, userId };
     const saved = await createBookingApi(payload);
     dispatch({ type: A.ADD_BOOKING, booking: saved || payload });
+    dispatch({ type: A.CLOSE_RENT_MODAL });
+    showToast(dispatch, 'İcarə sorğusu uğurla göndərildi');
   } catch (err) {
     console.error('İcarə sifarişi Firestore-a yazılmadı:', err);
+    showToast(dispatch, 'Sorğu göndərilərkən xəta baş verdi');
   }
-  dispatch({ type: A.CLOSE_RENT_MODAL });
-  showToast(dispatch, 'Sorğu göndərildi');
 }
 
 // ─── Contact Message ─────────────────────────────────────────────────────
@@ -182,18 +204,19 @@ export async function handleSendContact(dispatch, msgData, currentUser, product)
       productId:    product?.id,
       productTitle: product?.title,
     });
+    dispatch({ type: A.CLOSE_CONTACT_MODAL });
+    showToast(dispatch, 'Mesajınız uğurla göndərildi');
   } catch (err) {
     console.error('Mesaj Firestore-a yazılmadı:', err);
+    showToast(dispatch, 'Mesaj göndərilmədi, zəhmət olmasa yenidən cəhd edin');
   }
-  dispatch({ type: A.CLOSE_CONTACT_MODAL });
-  showToast(dispatch, 'Mesaj göndərildi');
 }
 
 // ─── Listing Handlers ────────────────────────────────────────────────────
 export function handleAddProductSubmit(dispatch, newProduct) {
   dispatch({ type: A.ADD_PRODUCT, product: newProduct });
   navigateTo(dispatch, 'product-detail', newProduct);
-  showToast(dispatch, 'Paylaşıldı');
+  showToast(dispatch, 'Elanınız uğurla paylaşıldı!');
 }
 
 export function handleAddListingClick(dispatch, currentUser) {
