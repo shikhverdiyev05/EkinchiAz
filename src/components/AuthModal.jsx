@@ -21,7 +21,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMessa
 
   if (!isOpen) return null;
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const phoneRegex = /^(\+994|0)(50|51|55|70|77|99|10|60)\d{7}$/;
 
   const validateField = (fieldName, value) => {

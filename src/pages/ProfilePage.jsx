@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
 import {
@@ -115,13 +116,18 @@ export default function ProfilePage({
   };
 
   const handleCancelRental = async (id) => {
+    if (!id) {
+      alert("Xəta: Sorğu ID tapılmadı.");
+      return;
+    }
     if (!window.confirm("Bu icarə sorğusunu ləğv etmək istədiyinizdən əminsiniz?")) return;
     setCancelingId(id);
     try {
       await deleteBookingApi(id);
       if (onCancelRental) onCancelRental(id);
     } catch (err) {
-      alert("Ləğv edilərkən xəta baş verdi.");
+      console.error("İcarə sorğusu ləğv edilərkən Firestore xətası:", err);
+      alert(`Ləğv edilərkən xəta baş verdi: ${err.message || 'Server xətası'}`);
     } finally {
       setCancelingId(null);
     }
@@ -300,9 +306,9 @@ export default function ProfilePage({
             ? <EmptyState icon={<Tractor className="w-6 h-6 text-blue-600" />} title="Aktiv icarə sorğunuz yoxdur." sub="Traktor, kombayn və ya torpaq sahələri üçün icarə sorğusu göndərə bilərsiniz." />
             : <div className="space-y-3">
                 {rentalBookings.map((b, idx) => {
-                  const key = b.id || idx;
+                  const bookingId = b.id;
                   return (
-                    <div key={key} className="p-4 sm:p-5 rounded-2xl bg-white/95 border border-blue-100 shadow-xs">
+                    <div key={bookingId || idx} className="p-4 sm:p-5 rounded-2xl bg-white/95 border border-blue-100 shadow-xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -318,11 +324,11 @@ export default function ProfilePage({
                           <p className="text-lg font-black text-blue-900">{(Number(b.estimatedCost) || 0).toLocaleString()} AZN</p>
                           {b.status !== "Ləğv edildi" && (
                             <div className="flex gap-2">
-                              <button onClick={() => handleRenewRental(b)} disabled={renewingId === key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition disabled:opacity-50">
-                                {renewingId === key ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Yenilə
+                              <button onClick={() => handleRenewRental(b)} disabled={renewingId === bookingId} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition disabled:opacity-50">
+                                {renewingId === bookingId ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Yenilə
                               </button>
-                              <button onClick={() => handleCancelRental(key)} disabled={cancelingId === key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[11px] font-bold transition disabled:opacity-50">
-                                {cancelingId === key ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />} Ləğv Et
+                              <button onClick={() => bookingId ? handleCancelRental(bookingId) : alert('Sorğu ID tapılmadı')} disabled={cancelingId === bookingId} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[11px] font-bold transition disabled:opacity-50">
+                                {cancelingId === bookingId ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />} Ləğv Et
                               </button>
                             </div>
                           )}
@@ -435,9 +441,9 @@ export default function ProfilePage({
 
         {sidebarOpen && (
           <div className="lg:hidden fixed inset-0 z-50 flex">
-            <div className="fixed inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
-            <div className="relative z-10 w-72 bg-white/98 backdrop-blur-xl shadow-2xl overflow-y-auto">
-              <button onClick={() => setSidebarOpen(false)} className="absolute top-3 right-3 p-1.5 rounded-full bg-gray-100"><X className="w-4 h-4" /></button>
+            <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={() => setSidebarOpen(false)} />
+            <div className="relative z-10 w-72 bg-white shadow-2xl overflow-y-auto border-r border-emerald-100 flex flex-col">
+              <button onClick={() => setSidebarOpen(false)} className="absolute top-3 right-3 p-1.5 rounded-full bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition z-20"><X className="w-4 h-4" /></button>
               <SidebarContent />
             </div>
           </div>

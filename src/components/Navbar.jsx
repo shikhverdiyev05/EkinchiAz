@@ -201,7 +201,7 @@ export default function Navbar({
 
           {/* Mobile Full Dropdown */}
           {mobileMenuOpen && (
-            <div className="lg:hidden py-4 border-t border-emerald-100 space-y-1.5 bg-white/95 backdrop-blur-2xl rounded-b-3xl shadow-xl px-2 mb-3 animate-slideUp">
+            <div className="lg:hidden py-4 border-t border-emerald-100 space-y-1.5 bg-white rounded-b-3xl shadow-2xl px-3 mb-3 border-x border-b animate-slideUp">
               <button
                 onClick={onAddListingClick}
                 className="w-full text-left px-4 py-3 rounded-2xl font-black text-xs sm:text-sm bg-amber-500 text-white shadow-xs flex items-center justify-between"

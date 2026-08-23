@@ -433,7 +433,7 @@ export async function getUserBookingsApi(userId) {
 }
 
 export async function createBookingApi(bookingData) {
-  const { existingId, ...restData } = bookingData;
+  const { existingId, id, ...restData } = bookingData;
   const payload = {
     ...restData,
     status: 'Təsdiq gözləyir',
@@ -451,8 +451,12 @@ export async function createBookingApi(bookingData) {
 }
 
 export async function deleteBookingApi(bookingId) {
-  if (!bookingId) return;
-  await deleteDoc(doc(db, COL.BOOKINGS, bookingId));
+  if (!bookingId) {
+    console.warn('deleteBookingApi: bookingId təyin edilməyib');
+    return;
+  }
+  const ref = doc(db, COL.BOOKINGS, String(bookingId));
+  await deleteDoc(ref);
 }
 
 // ════════════════════════════════

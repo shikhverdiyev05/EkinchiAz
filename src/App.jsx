@@ -36,7 +36,10 @@ import ListingsPage         from './pages/ListingsPage';
 import ProductDetailPage    from './pages/ProductDetailPage';
 import AddListingPage       from './pages/AddListingPage';
 import ProfilePage          from './pages/ProfilePage';
-import { AboutPage, FaqPage, ContactPage, SocialFeedPage } from './pages/StaticPages';
+import { AboutPage }        from './pages/AboutPage';
+import { FaqPage }          from './pages/FaqPage';
+import { ContactPage }      from './pages/ContactPage';
+import { SocialFeedPage }   from './pages/SocialFeedPage';
 import { setStoredCurrentUser } from './services/storageService';
 
 export default function App() {
@@ -70,14 +73,15 @@ export default function App() {
     const handlePopState = () => {
       const path = window.location.pathname;
       if (path.startsWith('/mehsul/')) {
-        const prodId = path.replace('/mehsul/', '');
         dispatch({ type: A.SET_PAGE, page: 'product-detail' });
-        // Setting the selected product will be handled by the next useEffect when products array is loaded
         return;
       }
       const mappedPage = routeToPageMap[path] || 'home';
       dispatch({ type: A.SET_PAGE, page: mappedPage });
     };
+
+    // İlkin yükləmədə cari URL-dən səhifəni oxu (refresh zamanı)
+    handlePopState();
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
