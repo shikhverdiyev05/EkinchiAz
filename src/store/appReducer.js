@@ -83,6 +83,7 @@ export const initialState = {
   // Routing
   activePage:          getInitialPage(),
   selectedProduct:     null,
+  selectedUser:        null,
   listingFilters:      {},
 
   // Data
@@ -122,6 +123,8 @@ export function appReducer(state, action) {
     /* ── Routing ── */
     case A.SET_PAGE:
       return { ...state, activePage: action.page };
+        case A.SET_SELECTED_USER:
+      return { ...state, selectedUser: action.user };
     case A.SET_SELECTED_PRODUCT:
       return { ...state, selectedProduct: action.product };
     case A.SET_LISTING_FILTERS:

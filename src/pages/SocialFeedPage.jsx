@@ -1,28 +1,169 @@
-/* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect } from 'react';
-import {
-  Info, Users, Target, Heart, Clock, Handshake, ChevronDown,
-  Sprout, Tractor, ShoppingBasket, Cpu, Globe, Leaf, Star, CheckCircle,
-  FlaskConical, Wheat, TreeDeciduous, MapPin, Phone, Mail,
-  ArrowRight, Shield, TrendingUp, MessageCircle,
-  ChevronLeft, ChevronRight, AlertCircle, Loader2
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Users, Plus, Loader2 } from 'lucide-react';
+import { getPostsApi, checkUserLikesSavesApi, toggleLikeApi, toggleSaveApi, toggleFollowApi } from '../services/apiService';
+import { PostCard } from '../components/PostCard';
+import { PostModal } from '../components/PostModal';
+import { CreatePostModal } from '../components/CreatePostModal';
 
+export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [userLikes, setUserLikes] = useState([]);
+  const [userSaves, setUserSaves] = useState([]);
+  const [userFollows, setUserFollows] = useState([]);
 
-export function SocialFeedPage() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const p = await getPostsApi();
+      setPosts(p);
+
+      if (currentUser) {
+        const stats = await checkUserLikesSavesApi(currentUser.id);
+        setUserLikes(stats.likedPostIds);
+        setUserSaves(stats.savedPostIds);
+        setUserFollows(stats.followingIds);
+      }
+    } catch (error) {
+      console.error('loadData error:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleLike = async (postId) => {
+    if (!currentUser) return onShowToast?.('Evvelce daxil olun');
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const newLiked = !userLikes.includes(postId);
+    setUserLikes(prev => newLiked ? [...prev, postId] : prev.filter(id => id !== postId));
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, likesCount: newLiked ? (p.likesCount || 0) + 1 : (p.likesCount || 0) - 1 } : p));
+    
+    try {
+      await toggleLikeApi(postId, currentUser.id, newLiked);
+    } catch (error) {
+      setUserLikes(prev => newLiked ? prev.filter(id => id !== postId) : [...prev, postId]);
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, likesCount: newLiked ? (p.likesCount || 0) - 1 : (p.likesCount || 0) + 1 } : p));
+    }
+  };
+
+  const handleSave = async (postId) => {
+    if (!currentUser) return onShowToast?.('Evvelce daxil olun');
+    const newSaved = !userSaves.includes(postId);
+    setUserSaves(prev => newSaved ? [...prev, postId] : prev.filter(id => id !== postId));
+    
+    try {
+      await toggleSaveApi(postId, currentUser.id, newSaved);
+    } catch (error) {
+      setUserSaves(prev => newSaved ? prev.filter(id => id !== postId) : [...prev, postId]);
+    }
+  };
+
+  const handleShare = (postId) => {
+    navigator.clipboard.writeText(window.location.origin + '/?post=' + postId);
+    onShowToast?.('Link kopyalandi');
+  };
+
+  const handleFollow = async (authorId) => {
+    if (!currentUser) return onShowToast?.('Evvelce daxil olun');
+    if (currentUser.id === authorId) return;
+    
+    const newFollowing = !userFollows.includes(authorId);
+    setUserFollows(prev => newFollowing ? [...prev, authorId] : prev.filter(id => id !== authorId));
+    
+    try {
+      await toggleFollowApi(currentUser.id, authorId, newFollowing);
+    } catch (error) {
+      setUserFollows(prev => newFollowing ? prev.filter(id => id !== authorId) : [...prev, authorId]);
+    }
+  };
+
+  const isFollowing = (authorId) => userFollows.includes(authorId);
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 text-center space-y-6">
-      <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto shadow-sm">
-        <Users className="w-10 h-10 text-emerald-700" />
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center shadow-sm">
+            <Users className="w-7 h-7 text-emerald-700" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-gray-900">Paylasimlar</h1>
+            <p className="text-sm text-gray-500">Aqrar icmanin tecrube ve fikirlari</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => { if (!currentUser) return onShowToast?.('Evvelce daxil olun'); setIsCreateOpen(true); }}
+          className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+        >
+          <Plus className="w-5 h-5" /> Yeni Paylasim
+        </button>
       </div>
-      <h1 className="text-3xl font-black text-gray-900">Aqrar Sosial Şəbəkə və Paylaşımlar</h1>
-      <p className="text-sm text-gray-600 max-w-lg mx-auto leading-relaxed">
-        Tezliklə: Fermerlərin təcrübə mübadiləsi, aqronom məsləhətləri, məhsul xəstəliklərinin foto ilə
-        təyini və sosial müzakirə platforması bu bölmədə aktivləşəcək.
-      </p>
-      <div className="inline-block px-4 py-2 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-bold text-xs">
-        İnkişaf Mərhələsindədir
-      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <Loader2 className="w-8 h-8 animate-spin mb-4 text-emerald-500" />
+          <p>Yuklenir...</p>
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-3xl border border-gray-100">
+          <p className="text-gray-500">Hele hec bir paylasim yoxdur.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {posts.map(post => (
+            <PostCard 
+              key={post.id} 
+              post={post}
+              isLiked={userLikes.includes(post.id)}
+              isSaved={userSaves.includes(post.id)}
+              isFollowing={isFollowing(post.userId)}
+              onOpenModal={setSelectedPost}
+              onNavigateUser={onNavigateUser}
+              currentUser={currentUser}
+              onShowToast={onShowToast}
+              onLike={handleLike}
+              onSave={handleSave}
+              onShare={handleShare}
+              onFollow={handleFollow}
+              showActions={false}
+            />
+          ))}
+        </div>
+      )}
+
+      <CreatePostModal 
+        isOpen={isCreateOpen} 
+        onClose={() => setIsCreateOpen(false)} 
+        onSuccess={loadData}
+        currentUser={currentUser}
+        onShowToast={onShowToast}
+      />
+
+      <PostModal 
+        isOpen={!!selectedPost} 
+        onClose={() => setSelectedPost(null)} 
+        post={selectedPost}
+        isLiked={selectedPost ? userLikes.includes(selectedPost.id) : false}
+        isSaved={selectedPost ? userSaves.includes(selectedPost.id) : false}
+        onNavigateUser={onNavigateUser}
+        currentUser={currentUser}
+        onShowToast={onShowToast}
+        onLike={(id) => handleLike(id)}
+        onSave={(id) => handleSave(id)}
+        onShare={(id) => handleShare(id)}
+        onFollow={handleFollow}
+        isFollowing={selectedPost ? isFollowing(selectedPost.userId) : false}
+      />
     </div>
   );
 }

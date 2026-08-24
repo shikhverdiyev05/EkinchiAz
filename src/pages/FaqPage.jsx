@@ -14,10 +14,12 @@ const FAQ_CATS = [
     icon: Info,
     color: 'emerald',
     faqs: [
-      { q: 'Ekinchi.Az nə üçün yaradılıb?', a: 'Ekinchi.Az Azərbaycanda aqrar sahənin rəqəmsallaşdırılması, fermerlərin bazara birbaşa çıxışının təmin edilməsi, texnika/torpaq icarəsinin asanlaşdırılması məqsədilə yaradılmış innovativ platformadır. Fermerdən alıcıya birbaşa əlaqə qurulmasını hədəfləyirik.' },
+      { q: 'Ekinchi.Az nə üçün yaradılıb?', a: 'Ekinchi.Az Azərbaycanda aqrar sahənin rəqəmsallaşdırılması, fermerlərin bazara birbaşa çıxışının təmin edilməsi, texnika/torpaq icarasının asanlaşdırılması məqsədilə yaradılmış innovativ platformadır. Fermerdən alıcıya birbaşa əlaqə qurulmasını hədəfləyirik.' },
       { q: 'Platforma ödənişlidirmi?', a: 'Xeyr. İlkin mərhələdə bütün fermerlər, sahibkarlar və icarəçilər üçün elan yerləşdirmək, baxmaq və müraciət etmək tamamilə pulsuzdur. Gələcəkdə premium xidmət paketləri nəzərdə tutulur.' },
       { q: 'Platformada qeydiyyat məcburidirmi?', a: 'Elanları baxmaq üçün qeydiyyat tələb olunmur. Lakin elan yerləşdirmək, sevimlilərə əlavə etmək, icarə sifarişi vermək üçün hesab açmaq lazımdır. Qeydiyyat yalnız 1 dəqiqə çəkir.' },
       { q: 'Hansı regionlara xidmət göstərilir?', a: 'Azərbaycanın bütün regionlarına xidmət göstərilir — Bakı, Gəncə, Mingəçevir, Lənkəran, Şirvan, Bərdə, Naxçıvan MR və digər bütün rayon mərkəzləri daxildir.' },
+      { q: 'Mobil tətbiq varmı?', a: 'Hazırda veb versiyası bütün cihazlarda mükəmməl işləyir. Native mobil tətbiq (iOS/Android) 2024-cu ilin son çərxində planlaşdırılıb.' },
+      { q: 'Platforma dilləri hansılardır?', a: 'Əsas dili Azərbaycan dilidir. Rusi və İngilis dili dəstəyi gələcək yeniliklərdə əlavə olunacaq.' },
     ],
   },
   {
@@ -29,6 +31,8 @@ const FAQ_CATS = [
       { q: 'Kənd təsərrüfatı texnikaları niyə səbətə əlavə olunmur?', a: 'Texnika və torpaq sahələri yüksək dəyərə malik olduğundan onlar üçün fərqli axın yaradılıb — satıcı ilə birbaşa əlaqə qurulur və ya platforma üzərindən icarə sifarişi verilir.' },
       { q: 'Sifariş verdikdən sonra çatdırılma müddəti nə qədərdir?', a: 'Çatdırılma müddəti satıcıdan satıcıya dəyişir. Şəhərdaxili sifarişlər üçün 1-2 iş günü, regionlararası sifarişlər üçün 3-5 iş günü gözlənilir.' },
       { q: 'Ödəniş üsulları hansılardır?', a: 'Hazırda nağd ödəniş (çatdırılmada) və bank köçürməsi dəstəklənir. Onlayn kartla ödəniş sistemi tezliklə aktiv ediləcək.' },
+      { q: 'Sifarişi ləğv edə bilərəmmi?', a: 'Bəli, sifariş təsdiqlənməzsə və ya çatdırılmıbsə profilinizdəki "Sifarişlər" bölməsindən ləğv edə bilərsiniz.' },
+      { q: 'Məhsul keyfiyyəti zəmanətdirsə?', a: 'Platforma "Əlaqə" bölməsindən şikayət yazın. Satıcı ilə razılaşmazlıq yaranarsa adminlər məhkəmə qarşılıqlı həll etməyə kömək edir.' },
     ],
   },
   {
@@ -40,6 +44,8 @@ const FAQ_CATS = [
       { q: 'İcarəni ləğv etmək mümkündürmü?', a: 'Bəli, icarə başlamazdan 48 saat əvvəl ləğvetmə sorğusu göndərə bilərsiniz. Ləğvetmə şərtləri satıcı ilə razılaşma əsasında müəyyənləşdirilir.' },
       { q: 'Sahə və torpaq icarəsi üçün sənəd lazımdırmı?', a: 'Torpaq sahəsi icarəsi zamanı iki tərəf arasında icarə müqaviləsi tövsiyə olunur. Platforma müqavilə şablonu yaxın zamanda hazırlanacaq.' },
       { q: 'Texnika arızalananda nə etmək lazımdır?', a: 'Problem yaranan halda dərhal platforma üzərindən satıcıya bildiriş göndərin. Satıcı texnikanı dəyişdirmək və ya problemi həll etmək öhdəliyini daşıyır.' },
+      { q: 'İcarə qiyməti necə müəyyən olunur?', a: 'Qiymət elan sahibi tərəfindən günlük/haftalık/aylıq bazada göstərilir. Müddətə görə endirim tətbiq edilə bilər.' },
+      { q: 'Yanacaq və operator daxildirmi?', a: 'Bunun elan təsvirində qeyd olunmalıdır. Adətən traktor/kombayn icarəsində operator də dahildir, yanacaq isə icarəçidədir.' },
     ],
   },
   {
@@ -48,9 +54,45 @@ const FAQ_CATS = [
     color: 'violet',
     faqs: [
       { q: 'Necə qeydiyyatdan keçmək olar?', a: 'Saytın yuxarı hissəsindəki "Daxil ol" düyməsini sıxın, adınızı, email və ya nömrənizi daxil edib "Qeydiyyat" seçin. Proses yalnız 1 dəqiqə çəkir.' },
-      { q: 'Elanımı necə yerləşdirirəm?', a: 'Hesaba giriş etdikdən sonra "Elan Yerləşdir" düyməsini sıxın. Məhsul/texnika məlumatları, qiymət, şəkil əlavə edib göndərin. Elanınız 5 dəqiqə ərzində aktivləşir.' },
+      { q: 'Elanımı necə yerləşdirirəm?', a: 'Hesaba giriş etdikdən sonra "Elan Yerleşdir" düyməsini sıxın. Məhsul/texnika məlumatları, qiymət, şəkil əlavə edib göndərin. Elanınız 5 dəqiqə ərzində aktivleşir.' },
       { q: 'Elanı sonradan redaktə edə bilərəmmi?', a: 'Hələlik redaktə funksiyası inkişaf mərhələsindədir. Elanı silmək üçün profil bölməsindəki "Elanlarım" hissəsindən istifadə edə bilərsiniz.' },
       { q: 'Şifrəmi unutduqda nə etmək lazımdır?', a: 'Daxil olma ekranındakı "Şifrəni unutdum" bağlantısına basın. Email ünvanınıza sıfırlama linki göndəriləcək. Bağlantı 15 dəqiqə keçərlidir.' },
+      { q: 'Profil məlumatlarımı necə dəyişmək olar?', a: 'Profil səhifəsində "Parametrlər" sekmesine daxil olun, məlumatları yeniləyin və "Saxla" düyməsini basın.' },
+      { q: 'Şirkət hesabı necə açılır?', a: 'Qeydiyyat zamanı "Aqro Şirkət" növünü seçin və ya profil parametrlərindən dəyişin. Şirkətlərə xüsusi badge verilir.' },
+    ],
+  },
+  {
+    label: 'Aqronom Xidmətləri',
+    icon: FlaskConical,
+    color: 'green',
+    faqs: [
+      { q: 'Aqronom xidmətləri necə sifariş edilir?', a: 'Kateqoriya menyusundan "Aqronom xidmətləri" seçin, uyğun xidməti tapın və sifariş verin. Mütəxəssis sizinlə əlaqə saxlayaraq Planlaşdırılacaq.' },
+      { q: 'Torpaq analizi necə aparılır?', a: 'Sizdən torpaq nümunələri tələb olunur, laboratoriyada analiz olunur və nəticə 3-5 iş günü ərzində sizə təqdim edilir.' },
+      { q: 'Dronla çiləmə necə işləyir?', a: 'Dron sahəni xəritələyir, problem zonaları (xəstəlik, quru, alaq) aşkar edir. Sonra dəqiq doza ilə çiləmə aparılır.' },
+      { q: 'Meyvə baq budaması nə vaxt göstərilir?', a: 'Dövrüyyə ulduzu (qış), qəvə ulduzu (yaz), sub-tropik bitkilər (sonbahar) — müxtəlif vaxtlarda. Mütəxəssis vaxtı müəyyən edəcək.' },
+      { q: 'Quyu qazması üçün icazə lazımdırmı?', a: 'Bəli, dərin su quyuları üçün müvafiq icazə və layihə tələb olunur. Biz sizə sənədləri toplamaqdə kömək edirik.' },
+    ],
+  },
+  {
+    label: 'Heyvandarlıq & Quşçuluq',
+    icon: Bird,
+    color: 'orange',
+    faqs: [
+      { q: 'Heyvan alış-verişi necə təhlükəsizdir?', a: 'Satıcı profili yoxlanılır, heyvanın sağlamlıq sertifikatı (veterinar paşportu) tələb olunur. Ödəniş Heyvanı alındıqdan sonra edilir.' },
+      { q: 'Arı ailəsi necə icarə alınır?', a: 'Balıqçılıq séance üçün arı ailələri icarə edilə bilər. Ailənin gücü (kadr sayı), melliferia dövrü qeyd olunur.' },
+      { q: 'Qoyun/keçi alışı üçün nə lazımdır?', a: 'Veterinar paşport, qruplaşma nömrəsi, yaş və cinsiyyət. Satıcı profilində "Doğrulandı" işarəsi olanları prefer edin.' },
+      { q: 'Yumurta incubatoru alışında quraşdırma daxildirmi?', a: 'Adətən quraşdırma xidməti əlavə pul karşılığında göstərilir. Elan təsvirində qeyd olunmalıdır.' },
+    ],
+  },
+  {
+    label: 'Təhlükəsizlik & Dəstək',
+    icon: Shield,
+    color: 'red',
+    faqs: [
+      { q: 'Satıcı realdırmı, necə yoxlayırsınız?', a: 'Yeni satıcıların nömrəsi, email, sosial şəbəkələr yoxlanılır. "Doğrulandı" badge-i alan satıcılar administratorski təsdiqlənib.' },
+      { q: 'Dolubazarlıq olarsa niyə etibar edəcəm?', a: 'Platforma "Şikayət" funksiyası var. Adminlər 24 saat ərzində baxır, yanlış tapılarsa satıcı bloklanır və pul qaytarılır.' },
+      { q: 'Şəxsi məlumatlarım qorunmurmı?', a: 'Bəli, GDPR standartlarına uyğun. Məlumatlarınız heç kimsə satılmır, 3-cü tərəflərə ötürülmür. Şifrələnmiş saxlanılır.' },
+      { q: 'Texniki dəstək necə alınır?', a: 'Saytdakı "Əlaqə" forması, telefon (+994 55 673 14 07) və ya email (info@ekinchi.az) vasitəsilə 09:00-18:00 arasında dəstək alırsınız.' },
     ],
   },
 ];

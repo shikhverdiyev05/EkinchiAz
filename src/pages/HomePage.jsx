@@ -380,7 +380,57 @@ export default function HomePage({
           </div>
         </section>
 
-        {/* CTA Banner */}
+        {/* Platform Stats */}
+        <section className="py-12 sm:py-16 bg-white/80 rounded-[2rem] border border-emerald-100/80 shadow-sm">
+          <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
+              {[
+                { value: "10,000+", label: "Aktiv Fermer", icon: UserPlus },
+                { value: "25,000+", label: "Elan Paylaşıldı", icon: Megaphone },
+                { value: "1,200+", label: "Şirkət və Marka", icon: CheckCircle },
+                { value: "70+", label: "Rayon və Sahələr", icon: MapIcon }
+              ].map((stat, idx) => (
+                <div key={idx} className="flex flex-col items-center p-4">
+                  <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-2xl mb-3">
+                    <stat.icon className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <p className="text-2xl sm:text-3xl font-black text-gray-900">{stat.value}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="py-8 sm:py-12">
+          <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight">Niyə Ekinchi.Az?</h2>
+              <p className="text-sm sm:text-base text-gray-500 mt-3 max-w-2xl mx-auto">Azərbaycan fermerlərinin və aqrar şirkətlərinin etmən güvəndiyi platforma.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+              {[
+                { title: "Birbaşa Satış", desc: "Vasitəçisiz alıcı ilə əlaqə qurun, komissiya ödəməyin.", icon: <ShieldCheck className="w-6 h-6 text-emerald-600" /> },
+                { title: "Texnika İcarəsi", desc: "Traktor, kombayn, aqreqat icarə verin və ya siz bronlaşdırın.", icon: <Tractor className="w-6 h-6 text-emerald-600" /> },
+                { title: "Torpaq İcarəsi", desc: "Münbit sahələr, bağlar və istixanaları uzunmüddətli kira götürün.", icon: <MapIcon className="w-6 h-6 text-emerald-600" /> },
+                { title: "Aqronom Dəstəy", desc: "Peşəkar aqronomlardan torpaq analizi, dron çiləmə, budama xidmətləri.", icon: <Microscope className="w-6 h-6 text-emerald-600" /> },
+                { title: "Heyvandarlıq", desc: "Damazlıq heyvan, arı ailələri, quşlar al və sat.", icon: <Bird className="w-6 h-6 text-emerald-600" /> },
+                { title: "Sosial Paylaşımlar", desc: "Təcrübə, məsləhət, suallar və uğur hikayələrini paylaşın.", icon: <Share2 className="w-6 h-6 text-emerald-600" /> }
+              ].map((feature, idx) => (
+                <div key={idx} className="bg-white p-6 sm:p-8 rounded-3xl border border-emerald-100 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group">
+                  <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all mb-4 shrink-0">
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Newsletter / CTA Banner */}
         <section className="relative rounded-[3rem] overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-900 text-white p-8 sm:p-16 text-center shadow-2xl mt-10">
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-400 via-transparent to-transparent"></div>
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>

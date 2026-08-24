@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, List, MessageSquare, Info, HelpCircle, Phone, PlusCircle, ShoppingCart, User, Menu, Plus } from 'lucide-react';
+import { Home, List, MessageSquare, Users, ShoppingCart, User, Menu, Plus, LogOut, Settings, Heart, Bookmark } from 'lucide-react';
 import LogoImg from '../assets/logowobg.png';
 
 export default function Navbar({ 
@@ -10,7 +10,8 @@ export default function Navbar({
   currentUser, 
   openAuthModal, 
   openProfile,
-  onAddListingClick
+  onAddListingClick,
+  onShowToast
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
@@ -27,32 +28,22 @@ export default function Navbar({
       const docHeight = document.documentElement.scrollHeight;
       const diff = currentY - prevY;
 
-      // Footere çatıb-çatmadığını yoxla (aşağıdan 320px məsafə)
       const nearBottom = currentY + windowHeight >= docHeight - 320;
       setIsNearFooter(nearBottom);
-
-      // Back to top düyməsi 300px-dən sonra görünür
       setShowBackToTop(currentY > 300);
 
-      // Footere çatıbsa -> HƏR İKİSİ GİZLƏNSİN
       if (nearBottom) {
         setShowNavbar(false);
         setShowBottomBar(false);
         setMobileMenuOpen(false);
-      } 
-      // Səhifənin ən yuxarısında hər ikisi görünür
-      else if (currentY < 20) {
+      } else if (currentY < 20) {
         setShowNavbar(true);
         setShowBottomBar(true);
-      } 
-      // Aşağı scroll olunanda: Navbar gizlənir, BottomBar görünür
-      else if (diff > 8) {
+      } else if (diff > 8) {
         setShowNavbar(false);
         setShowBottomBar(true);
         setMobileMenuOpen(false);
-      } 
-      // Yuxarı scroll olunanda: Navbar görünür, BottomBar gizlənir
-      else if (diff < -8) {
+      } else if (diff < -8) {
         setShowNavbar(true);
         setShowBottomBar(false);
       }
@@ -76,19 +67,29 @@ export default function Navbar({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handlePlusClick = () => {
+    if (!currentUser) {
+      onShowToast?.('Əvvəlcə daxil olun');
+      openAuthModal();
+      return;
+    }
+    if (activePage === 'social') {
+      handleNavClick('add-listing');
+    } else {
+      onAddListingClick();
+    }
+  };
+
   return (
     <>
-      {/* Top Header Placeholder */}
       <div className="h-16 sm:h-20" />
 
-      {/* Top Header (Aşağı scroll-da və Footer-də gizlənir, Yuxarı scroll-da açılır) */}
       <header className={`fixed top-0 left-0 right-0 z-40 w-full backdrop-blur-2xl bg-white/90 border-b border-emerald-100/80 shadow-xs transition-transform duration-300 ${
         showNavbar && !isNearFooter ? 'translate-y-0' : '-translate-y-full lg:translate-y-0'
       }`}>
         <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20 gap-2">
             
-            {/* Logo */}
             <div 
               onClick={() => handleNavClick('home')} 
               className="flex items-center gap-2 cursor-pointer group select-none flex-shrink-0"
@@ -107,7 +108,6 @@ export default function Navbar({
               </div>
             </div>
 
-            {/* Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center gap-1 bg-emerald-50/80 p-1 rounded-full border border-emerald-100/90 backdrop-blur-md flex-shrink-1">
               <button
                 onClick={() => handleNavClick('home')}
@@ -136,20 +136,16 @@ export default function Navbar({
               <button onClick={() => handleNavClick('contact')} className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-full text-[11px] xl:text-xs font-bold transition-all ${activePage === 'contact' ? 'bg-emerald-600 text-white' : 'text-gray-700 hover:text-emerald-800'}`}>Əlaqə</button>
             </nav>
 
-            {/* Top Right Actions */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
-              
-              {/* Add Listing Button */}
               <button
-                onClick={onAddListingClick}
+                onClick={handlePlusClick}
                 className="hidden sm:flex items-center gap-1.5 p-2 xl:px-3.5 xl:py-2 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black shadow-sm transition active:scale-95"
-                title="Elan Yerləşdir"
+                title={activePage === 'social' ? 'Yeni Paylaşım' : 'Elan Yerləşdir'}
               >
                 <Plus className="w-5 h-5 xl:w-4 xl:h-4" />
-                <span className="hidden xl:inline text-sm">Elan Yerləşdir</span>
+                <span className="hidden xl:inline text-sm">{activePage === 'social' ? 'Paylaşım' : 'Elan Ver'}</span>
               </button>
 
-              {/* Cart Button */}
               <button
                 onClick={openCart}
                 className="relative p-2 sm:p-2.5 rounded-2xl bg-white/90 border border-emerald-100 text-emerald-800 shadow-xs hover:bg-emerald-50 transition"
@@ -163,7 +159,6 @@ export default function Navbar({
                 )}
               </button>
 
-              {/* User / Login Button */}
               {currentUser ? (
                 <div onClick={openProfile} className="flex items-center gap-2 p-1 xl:pl-1.5 xl:pr-3 xl:py-1.5 rounded-2xl bg-white/90 border border-emerald-200 cursor-pointer shadow-xs hover:border-emerald-400 transition" title="Profil">
                   {currentUser.avatar && currentUser.avatar.startsWith('http') ? (
@@ -188,7 +183,6 @@ export default function Navbar({
                 </button>
               )}
 
-              {/* Mobile Hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-2 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center"
@@ -199,29 +193,37 @@ export default function Navbar({
 
           </div>
 
-          {/* Mobile Full Dropdown */}
           {mobileMenuOpen && (
             <div className="lg:hidden py-4 border-t border-emerald-100 space-y-1.5 bg-white rounded-b-3xl shadow-2xl px-3 mb-3 border-x border-b animate-slideUp">
               <button
-                onClick={onAddListingClick}
+                onClick={handlePlusClick}
                 className="w-full text-left px-4 py-3 rounded-2xl font-black text-xs sm:text-sm bg-amber-500 text-white shadow-xs flex items-center justify-between"
               >
-                <span className="flex items-center gap-2"><PlusCircle className="w-4 h-4" /> Yeni Elan Paylaş</span>
+                <span className="flex items-center gap-2"><Plus className="w-4 h-4" /> {activePage === 'social' ? 'Yeni Paylaşım' : 'Yeni Elan Paylaş'}</span>
                 <span>→</span>
               </button>
 
               <button onClick={() => handleNavClick('home')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Home className="w-4 h-4 text-emerald-600" /> Ana Səhifə</button>
-              <button onClick={() => handleNavClick('listings')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><List className="w-4 h-4 text-emerald-600" /> Bütün Elanlar (Satış & İcarə)</button>
-              <button onClick={() => handleNavClick('social')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><MessageSquare className="w-4 h-4 text-emerald-600" /> Paylaşımlar (Sosial)</button>
-              <button onClick={() => handleNavClick('about')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Info className="w-4 h-4 text-emerald-600" /> Haqqımızda</button>
-              <button onClick={() => handleNavClick('faq')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><HelpCircle className="w-4 h-4 text-emerald-600" /> FAQ</button>
-              <button onClick={() => handleNavClick('contact')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Phone className="w-4 h-4 text-emerald-600" /> Əlaqə</button>
+              <button onClick={() => handleNavClick('listings')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><List className="w-4 h-4 text-emerald-600" /> Bütün Elanlar</button>
+              <button onClick={() => handleNavClick('social')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><MessageSquare className="w-4 h-4 text-emerald-600" /> Paylaşımlar</button>
+              <button onClick={() => handleNavClick('about')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Users className="w-4 h-4 text-emerald-600" /> Haqqımızda</button>
+              <button onClick={() => handleNavClick('faq')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Heart className="w-4 h-4 text-emerald-600" /> FAQ</button>
+              <button onClick={() => handleNavClick('contact')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Bookmark className="w-4 h-4 text-emerald-600" /> Əlaqə</button>
+              <hr className="border-emerald-100 my-2" />
+              {currentUser ? (
+                <>
+                  <button onClick={() => handleNavClick('profile')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><User className="w-4 h-4 text-emerald-600" /> Profilim</button>
+                  <button onClick={() => handleNavClick('settings')} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-gray-700 hover:bg-emerald-50"><Settings className="w-4 h-4 text-emerald-600" /> Parametrlər</button>
+                  <button onClick={() => { onShowToast?.('Çıxış edildi'); }} className="w-full px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 text-rose-600 hover:bg-rose-50"><LogOut className="w-4 h-4" /> Çıxış</button>
+                </>
+              ) : (
+                <button onClick={openAuthModal} className="w-full px-4 py-3 rounded-xl font-black text-sm bg-emerald-600 text-white flex items-center justify-center gap-2"><User className="w-4 h-4" /> Daxil Ol / Qeydiyyat</button>
+              )}
             </div>
           )}
         </div>
       </header>
 
-      {/* Mobile App-like Bottom Navigation Dock (Yuxarı scroll-da və Footer-də gizlənir, Aşağı scroll-da görünür) */}
       <div className={`lg:hidden fixed bottom-3 left-3 right-3 z-40 transition-all duration-300 transform ${
         showBottomBar && !isNearFooter ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'
       }`}>
@@ -236,16 +238,14 @@ export default function Navbar({
             <span className="text-[9px] font-bold">Elanlar</span>
           </button>
 
-          {/* Plus Add Listing */}
-          <button onClick={onAddListingClick} className="flex-1 flex flex-col items-center justify-center py-2 rounded-xl bg-amber-500 text-white shadow-md active:scale-95 transition">
+          <button onClick={handlePlusClick} className="flex-1 flex flex-col items-center justify-center py-2 rounded-xl bg-amber-500 text-white shadow-md active:scale-95 transition">
             <Plus className="w-6 h-6 mb-0.5 stroke-[3]" />
-            <span className="text-[9px] font-black">Elan Ver</span>
+            <span className="text-[9px] font-black">{activePage === 'social' ? 'Paylaşım' : 'Elan Ver'}</span>
           </button>
 
-          <button onClick={openCart} className="flex-1 flex flex-col items-center justify-center py-2 rounded-xl text-gray-500 hover:bg-gray-50 relative">
-            <ShoppingCart className="w-5 h-5 mb-1" />
-            {cartCount > 0 && <span className="absolute top-1 right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">{cartCount}</span>}
-            <span className="text-[9px] font-bold">Səbət</span>
+          <button onClick={() => handleNavClick('social')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition ${activePage === 'social' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500 hover:bg-gray-50'}`}>
+            <MessageSquare className="w-5 h-5 mb-1" />
+            <span className="text-[9px] font-bold">Paylaşımlar</span>
           </button>
 
           <button onClick={() => currentUser ? handleNavClick('profile') : openAuthModal()} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition ${activePage === 'profile' ? 'text-emerald-700 bg-emerald-50 font-black' : 'text-gray-500 hover:bg-gray-50'}`}>
@@ -255,14 +255,12 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Floating Return to Top Button (Sağ küncdə, footerdəki yazılara mane olmayacaq şəkildə) */}
       <button
         onClick={scrollToTop}
         title="Yuxarı Qayıt"
         className={`fixed bottom-24 lg:bottom-6 right-5 sm:right-8 z-50 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 text-white shadow-2xl shadow-emerald-950/30 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group ${
           showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0 pointer-events-none'
-        }`}
-      >
+        }`}>
         <svg className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>

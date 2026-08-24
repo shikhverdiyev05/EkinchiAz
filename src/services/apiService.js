@@ -37,6 +37,10 @@ const COL = {
   FAQ:        'faq',
   ABOUT:      'about',
   POSTS:      'posts',
+  COMMENTS:   'comments',
+  LIKES:      'likes',
+  SAVES:      'saves',
+  FOLLOWS:    'follows',
 };
 
 // ────────────────────────────────
@@ -550,14 +554,6 @@ export async function getFaqApi() {
   }
 }
 
-export async function getPostsApi() {
-  try {
-    const snap = await getDocs(collection(db, COL.POSTS));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch {
-    return [];
-  }
-}
 
 // ════════════════════════════════
 // HELPER — Token Generator
@@ -625,4 +621,177 @@ function normalizeProduct(raw) {
       memberSince: '2024',
     },
   };
+}
+// ==========================================
+// SOCIAL FEED & POSTS API
+// ==========================================
+
+export async function createPostApi(postData) {
+  try {
+    const docRef = await addDoc(collection(db, COL.POSTS), {
+      ...postData,
+      likesCount: 0,
+      commentsCount: 0,
+      sharesCount: 0,
+      savesCount: 0,
+      createdAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...postData, createdAt: new Date() };
+  } catch (error) {
+    console.error("Error creating post:", error);
+    throw error;
+  }
+}
+
+export async function getPostsApi() {
+  try {
+    const q = query(collection(db, COL.POSTS), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error("Error getting posts:", error);
+    return [];
+  }
+}
+
+export async function getUserPostsApi(userId) {
+  try {
+    const q = query(collection(db, COL.POSTS), where("userId", "==", userId), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error("Error getting user posts:", error);
+    return [];
+  }
+}
+
+export async function deletePostApi(postId) {
+  try {
+    await deleteDoc(doc(db, COL.POSTS, postId));
+    return true;
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw error;
+  }
+}
+
+export async function updatePostApi(postId, updateData) {
+  try {
+    await updateDoc(doc(db, COL.POSTS, postId), updateData);
+    return true;
+  } catch (error) {
+    console.error("Error updating post:", error);
+    throw error;
+  }
+}
+
+export async function getUserProfileApi(userId) {
+  try {
+    const userDoc = await getDoc(doc(db, COL.USERS, userId));
+    if (userDoc.exists()) {
+      return { id: userDoc.id, ...userDoc.data() };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting user profile:", error);
+    return null;
+  }
+}
+
+export async function toggleLikeApi(postId, userId, isLiked) {
+  try {
+    // Basic optimistic counter update strategy in firestore rules might require transaction,
+    // but for simplicity we'll just add/remove doc and let client handle counter optimistically
+    const q = query(collection(db, COL.LIKES), where("postId", "==", postId), where("userId", "==", userId));
+    const snap = await getDocs(q);
+    
+    if (isLiked && snap.empty) {
+      await addDoc(collection(db, COL.LIKES), { postId, userId, createdAt: serverTimestamp() });
+    } else if (!isLiked && !snap.empty) {
+      snap.forEach(async (d) => { await deleteDoc(d.ref); });
+    }
+  } catch (error) {
+    console.error("Error toggling like:", error);
+  }
+}
+
+export async function checkUserLikesSavesApi(userId) {
+  try {
+    const likesSnap = await getDocs(query(collection(db, COL.LIKES), where("userId", "==", userId)));
+    const savesSnap = await getDocs(query(collection(db, COL.SAVES), where("userId", "==", userId)));
+    const followsSnap = await getDocs(query(collection(db, COL.FOLLOWS), where("followerId", "==", userId)));
+    
+    return {
+      likedPostIds: likesSnap.docs.map(d => d.data().postId),
+      savedPostIds: savesSnap.docs.map(d => d.data().postId),
+      followingIds: followsSnap.docs.map(d => d.data().followingId),
+    };
+  } catch (error) {
+    console.error("Error checking likes/saves/follows:", error);
+    return { likedPostIds: [], savedPostIds: [], followingIds: [] };
+  }
+}
+
+export async function toggleFollowApi(followerId, followingId, isFollowing) {
+  try {
+    const q = query(collection(db, COL.FOLLOWS), where("followerId", "==", followerId), where("followingId", "==", followingId));
+    const snap = await getDocs(q);
+    
+    if (isFollowing && snap.empty) {
+      await addDoc(collection(db, COL.FOLLOWS), { followerId, followingId, createdAt: serverTimestamp() });
+    } else if (!isFollowing && !snap.empty) {
+      snap.forEach(async (d) => { await deleteDoc(d.ref); });
+    }
+  } catch (error) {
+    console.error("Error toggling follow:", error);
+  }
+}
+
+export async function toggleSaveApi(postId, userId, isSaved) {
+  try {
+    const q = query(collection(db, COL.SAVES), where("postId", "==", postId), where("userId", "==", userId));
+    const snap = await getDocs(q);
+    
+    if (isSaved && snap.empty) {
+      await addDoc(collection(db, COL.SAVES), { postId, userId, createdAt: serverTimestamp() });
+    } else if (!isSaved && !snap.empty) {
+      snap.forEach(async (d) => { await deleteDoc(d.ref); });
+    }
+  } catch (error) {
+    console.error("Error toggling save:", error);
+  }
+}
+
+export async function getCommentsApi(postId) {
+  try {
+    const q = query(collection(db, COL.COMMENTS), where("postId", "==", postId), orderBy("createdAt", "asc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error("Error getting comments:", error);
+    return [];
+  }
+}
+
+export async function addCommentApi(commentData) {
+  try {
+    const docRef = await addDoc(collection(db, COL.COMMENTS), {
+      ...commentData,
+      createdAt: serverTimestamp()
+    });
+    return { id: docRef.id, ...commentData, createdAt: new Date() };
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    throw error;
+  }
+}
+
+export async function deleteCommentApi(commentId) {
+  try {
+    await deleteDoc(doc(db, COL.COMMENTS, commentId));
+    return true;
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    throw error;
+  }
 }

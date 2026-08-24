@@ -8,7 +8,10 @@ import {
   Loader2, CheckCircle, AlertCircle, Trash2, ShoppingCart, Clock, Tractor, Wheat
 } from "lucide-react";
 import ProductCard from "../components/ProductCard";
-import { updateUserProfileApi, deleteProductApi, deleteBookingApi } from "../services/apiService";
+import { PostCard } from "../components/PostCard";
+import { PostModal } from "../components/PostModal";
+import { CreatePostModal } from "../components/CreatePostModal";
+import { updateUserProfileApi, deleteProductApi, deleteBookingApi, getUserPostsApi, checkUserLikesSavesApi } from "../services/apiService";
 import { uploadImageToImgBB } from "../services/imageService";
 
 const REGIONS = ["Baki","Abseron","Sumqayit","Gence","Quba","Qusar","Xacmaz","Sabran","Qebele","Seki","Zaqatala","Balaken","Qax","Berde","Terter","Agdam","Agcabedi","Yevlax","Kirdamir","Ucar","Goycay","Ismayilli","Samahi","Semkir","Tovuz","Qazax","Agstafa","Goranboy","Saatli","Sabirabad","Imisli","Bilasuvar","Celilabad","Masalli","Lenkaran","Astara","Lerik","Salyan","Neftcala","Naxcivan MR"];
@@ -56,7 +59,8 @@ export default function ProfilePage({
   userListings = [], rentalBookings = [], orders = [], favoriteProducts = [],
   onViewDetails, onAddToCart, onOpenRentModal, onOpenContactModal,
   onToggleFavorite, currentUser, onRequireAuth, onAddNewListing,
-  onUpdateUser, onDeleteListing, onCancelRental, onRenewRental
+  onUpdateUser, onDeleteListing, onCancelRental, onRenewRental,
+  onShowToast
 }) {
   const [activeTab, setActiveTab] = useState("info");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -72,10 +76,41 @@ export default function ProfilePage({
   const [cancelingId, setCancelingId] = useState(null);
   const [renewingId, setRenewingId] = useState(null);
 
+  const [userPosts, setUserPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [userLikes, setUserLikes] = useState([]);
+  const [userSaves, setUserSaves] = useState([]);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [editPost, setEditPost] = useState(null);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+
   const activeListings = userListings.filter(p => p.inStock !== false).length;
   const followersCount = user?.followers || 0;
   const followingCount = user?.following || 0;
   const isImgAvatar = user?.avatar && user.avatar.startsWith("http");
+
+  const loadUserPosts = async () => {
+    if (!user?.id) return;
+    setPostsLoading(true);
+    try {
+      const posts = await getUserPostsApi(user.id);
+      setUserPosts(posts);
+      const stats = await checkUserLikesSavesApi(user.id);
+      setUserLikes(stats.likedPostIds);
+      setUserSaves(stats.savedPostIds);
+    } catch (err) {
+      console.error('Load user posts error:', err);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
+  // Load posts when user changes or posts tab is activated
+  useEffect(() => {
+    if (activeTab === 'posts' && user?.id) {
+      loadUserPosts();
+    }
+  }, [activeTab, user?.id]);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
@@ -112,12 +147,12 @@ export default function ProfilePage({
     try {
       await deleteProductApi(prodId);
       if (onDeleteListing) onDeleteListing(prodId);
-    } catch { alert("Elan silinərkən xəta baş verdi."); }
+    } catch { onShowToast?.("Elan silinərkən xəta baş verdi."); }
   };
 
   const handleCancelRental = async (id) => {
     if (!id) {
-      alert("Xəta: Sorğu ID tapılmadı.");
+      onShowToast?.("Xəta: Sorğu ID tapılmadı.");
       return;
     }
     if (!window.confirm("Bu icarə sorğusunu ləğv etmək istədiyinizdən əminsiniz?")) return;
@@ -127,7 +162,7 @@ export default function ProfilePage({
       if (onCancelRental) onCancelRental(id);
     } catch (err) {
       console.error("İcarə sorğusu ləğv edilərkən Firestore xətası:", err);
-      alert(`Ləğv edilərkən xəta baş verdi: ${err.message || 'Server xətası'}`);
+      onShowToast?.(`Ləğv edilərkən xəta baş verdi: ${err.message || 'Server xətası'}`);
     } finally {
       setCancelingId(null);
     }
@@ -158,19 +193,19 @@ export default function ProfilePage({
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-1 mt-4">
-          {[
-            { label: "Elan", value: activeListings },
-            { label: "Paylaşım", value: 0 },
-            { label: "İzləyici", value: followersCount },
-            { label: "İzlənilən", value: followingCount },
-          ].map(s => (
-            <div key={s.label} className="text-center bg-emerald-50/80 rounded-xl py-2 px-1">
-              <p className="font-black text-gray-900 text-sm leading-none">{s.value}</p>
-              <p className="text-[9px] text-gray-500 font-semibold mt-0.5 leading-tight">{s.label}</p>
-            </div>
-          ))}
-        </div>
+<div className="grid grid-cols-4 gap-1 mt-4">
+            {[
+              { label: "Elan", value: activeListings },
+              { label: "Paylaşım", value: userPosts.length },
+              { label: "İzləyici", value: followersCount },
+              { label: "İzlənilən", value: followingCount },
+            ].map(s => (
+              <div key={s.label} className="text-center bg-emerald-50/80 rounded-xl py-2 px-1">
+                <p className="font-black text-gray-900 text-sm leading-none">{s.value}</p>
+                <p className="text-[9px] text-gray-500 font-semibold mt-0.5 leading-tight">{s.label}</p>
+              </div>
+            ))}
+          </div>
       </div>
       <nav className="flex-1 py-3 space-y-0.5 px-2">
         {NAV_ITEMS.map(item => {
@@ -192,7 +227,7 @@ export default function ProfilePage({
         <button onClick={onAddNewListing} className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs flex items-center justify-center gap-2 transition">
           <Plus className="w-4 h-4" /> Yeni Elan
         </button>
-        <button onClick={() => alert("Paylaşım funksiyası tezliklə əlavə olunacaq!")} className="w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-black text-xs flex items-center justify-center gap-2 transition">
+        <button onClick={() => { setEditPost(null); setIsCreatePostOpen(true); }} className="w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-black text-xs flex items-center justify-center gap-2 transition">
           <Share2 className="w-4 h-4" /> Yeni Paylaşım
         </button>
         <button onClick={onLogout} className="w-full py-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-100 font-bold text-xs flex items-center justify-center gap-2 transition">
@@ -245,7 +280,7 @@ export default function ProfilePage({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: "Aktiv Elan", value: activeListings, color: "emerald" },
-              { label: "Paylaşım", value: 0, color: "blue" },
+              { label: "Paylaşım", value: userPosts.length, color: "blue" },
               { label: "İzləyici", value: followersCount, color: "purple" },
               { label: "İzlənilən", value: followingCount, color: "amber" },
             ].map(({ label, value, color }) => (
@@ -281,10 +316,53 @@ export default function ProfilePage({
       case "posts": return (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-black text-gray-900">Paylaşımlarım</h2>
-            <button onClick={() => alert("Paylaşım funksiyası tezliklə əlavə olunacaq!")} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-xl flex items-center gap-1 transition"><Plus className="w-3 h-3" /> Yeni Paylaşım</button>
+            <h2 className="text-lg font-black text-gray-900">Paylaşımlarım <span className="text-base text-gray-400 font-bold">({userPosts.length})</span></h2>
+            <button onClick={() => { setEditPost(null); setIsCreatePostOpen(true); }} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-xl flex items-center gap-1 transition"><Plus className="w-3 h-3" /> Yeni Paylaşım</button>
           </div>
-          <EmptyState icon={<Share2 className="w-6 h-6 text-emerald-600" />} title="Hələ heç bir paylaşım yoxdur." sub="Sosial paylaşım funksiyası tezliklə əlavə olunacaq." />
+          {postsLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            </div>
+          ) : userPosts.length === 0 ? (
+            <EmptyState icon={<Share2 className="w-6 h-6 text-emerald-600" />} title="Hələ heç bir paylaşım yoxdur." sub="İlk paylaşımınızı yaradaraq təcrübələrinizi bölüşün." cta="Paylaşım Yarad" onCta={() => { setEditPost(null); setIsCreatePostOpen(true); }} />
+          ) : (
+            <div className="space-y-6">
+              {userPosts.map(post => (
+                <PostCard 
+                  key={post.id} 
+                  post={post}
+                  isLiked={userLikes.includes(post.id)}
+                  isSaved={userSaves.includes(post.id)}
+                  onOpenModal={setSelectedPost}
+                  onEdit={p => { setEditPost(p); setIsCreatePostOpen(true); }}
+                  onDelete={id => setUserPosts(prev => prev.filter(p => p.id !== id))}
+                  onNavigateUser={onNavigateUser}
+                  currentUser={currentUser}
+                  onShowToast={onShowToast}
+                />
+              ))}
+            </div>
+          )}
+
+          <PostModal 
+            isOpen={!!selectedPost} 
+            onClose={() => setSelectedPost(null)} 
+            post={selectedPost}
+            isLiked={selectedPost ? userLikes.includes(selectedPost.id) : false}
+            isSaved={selectedPost ? userSaves.includes(selectedPost.id) : false}
+            onNavigateUser={onNavigateUser}
+            currentUser={currentUser}
+            onShowToast={onShowToast}
+          />
+
+          <CreatePostModal 
+            isOpen={isCreatePostOpen} 
+            onClose={() => setIsCreatePostOpen(false)} 
+            existingPost={editPost}
+            onSuccess={loadUserPosts}
+            currentUser={currentUser}
+            onShowToast={onShowToast}
+          />
         </div>
       );
       case "saved": return <div><h2 className="text-lg font-black text-gray-900 mb-4">Yadda Saxlananlar</h2><EmptyState icon={<Bookmark className="w-6 h-6 text-emerald-600" />} title="Heç bir şey yadda saxlanılmayıb." sub="Yadda saxlama funksiyası tezliklə əlavə olunacaq." /></div>;
@@ -327,7 +405,7 @@ export default function ProfilePage({
                               <button onClick={() => handleRenewRental(b)} disabled={renewingId === bookingId} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition disabled:opacity-50">
                                 {renewingId === bookingId ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Yenilə
                               </button>
-                              <button onClick={() => bookingId ? handleCancelRental(bookingId) : alert('Sorğu ID tapılmadı')} disabled={cancelingId === bookingId} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[11px] font-bold transition disabled:opacity-50">
+                              <button onClick={() => bookingId ? handleCancelRental(bookingId) : onShowToast?.('Sorğu ID tapılmadı')} disabled={cancelingId === bookingId} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[11px] font-bold transition disabled:opacity-50">
                                 {cancelingId === bookingId ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />} Ləğv Et
                               </button>
                             </div>

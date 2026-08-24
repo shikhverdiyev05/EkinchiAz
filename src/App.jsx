@@ -40,13 +40,14 @@ import { AboutPage }        from './pages/AboutPage';
 import { FaqPage }          from './pages/FaqPage';
 import { ContactPage }      from './pages/ContactPage';
 import { SocialFeedPage }   from './pages/SocialFeedPage';
+import { PublicProfilePage } from './pages/PublicProfilePage';
 import { setStoredCurrentUser } from './services/storageService';
 
 export default function App() {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
   const {
-    activePage, selectedProduct, listingFilters,
+    activePage, selectedProduct, selectedUser, listingFilters,
     products, categories, regions, isLoading,
     currentUser, authModalOpen, authMessage,
     cartItems, cartOpen,
@@ -138,6 +139,10 @@ export default function App() {
       dispatch({ type: A.OPEN_CONTACT_MODAL, product: prod });
     },
     onRequireAuth: (msg) => handleRequireAuth(dispatch, msg),
+    onNavigateUser:   (userId) => {
+      dispatch({ type: A.SET_SELECTED_USER, user: userId });
+      navigateTo(dispatch, 'user-profile');
+    },
   };
 
   return (
@@ -151,16 +156,17 @@ export default function App() {
       )}
 
       {/* Navbar */}
-      <Navbar
-        activePage={activePage}
-        setActivePage={(page) => navigateTo(dispatch, page)}
-        cartCount={cartCount}
-        openCart={() => dispatch({ type: A.TOGGLE_CART })}
-        currentUser={currentUser}
-        openAuthModal={() => dispatch({ type: A.OPEN_AUTH })}
-        openProfile={() => navigateTo(dispatch, 'profile')}
-        onAddListingClick={() => handleAddListingClick(dispatch, currentUser)}
-      />
+<Navbar
+          activePage={activePage}
+          setActivePage={(page) => navigateTo(dispatch, page)}
+          cartCount={cartCount}
+          openCart={() => dispatch({ type: A.TOGGLE_CART })}
+          currentUser={currentUser}
+          openAuthModal={() => dispatch({ type: A.OPEN_AUTH })}
+          openProfile={() => navigateTo(dispatch, 'profile')}
+          onAddListingClick={() => handleAddListingClick(dispatch, currentUser)}
+          onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
+        />
 
       {/* ── Routing ───────────────────────────────────────────────────── */}
       <main className="flex-grow">
@@ -247,10 +253,20 @@ export default function App() {
               };
               dispatch({ type: A.OPEN_RENT_MODAL, product: productMock });
             }}
+            onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
           />
         )}
 
-        {activePage === 'social'  && <SocialFeedPage onNavigateListings={(f) => handleNavigateListings(dispatch, f)} />}
+        {activePage === 'social'  && <SocialFeedPage currentUser={currentUser} onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }} onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
+        {activePage === 'user-profile' && selectedUser && (
+          <PublicProfilePage 
+            userId={selectedUser}
+            currentUser={currentUser}
+            onNavigate={(page) => navigateTo(dispatch, page)}
+            onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }}
+            onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
+          />
+        )}
         {activePage === 'about'   && <AboutPage      onNavigateListings={(f) => handleNavigateListings(dispatch, f)} />}
         {activePage === 'faq'     && <FaqPage         onNavigateContact={() => navigateTo(dispatch, 'contact')} />}
         {activePage === 'contact' && <ContactPage     onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
