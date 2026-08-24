@@ -23,4 +23,5 @@ config
 *.njsproj
 *.sln
 *.sw?
-*.env
+.env
+.env.*
