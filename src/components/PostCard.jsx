@@ -27,6 +27,10 @@ export function PostCard({
   const [shareCopied, setShareCopied] = useState(false);
   const [following, setFollowing] = useState(isFollowing || false);
 
+  useEffect(() => {
+    setFollowing(isFollowing || false);
+  }, [isFollowing]);
+
   const isOwner = currentUser?.id === post.userId;
 
   const handleLike = async () => {
