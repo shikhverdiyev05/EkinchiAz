@@ -700,15 +700,14 @@ export async function getUserProfileApi(userId) {
 
 export async function toggleLikeApi(postId, userId, isLiked) {
   try {
-    // Basic optimistic counter update strategy in firestore rules might require transaction,
-    // but for simplicity we'll just add/remove doc and let client handle counter optimistically
     const q = query(collection(db, COL.LIKES), where("postId", "==", postId), where("userId", "==", userId));
     const snap = await getDocs(q);
     
     if (isLiked && snap.empty) {
       await addDoc(collection(db, COL.LIKES), { postId, userId, createdAt: serverTimestamp() });
     } else if (!isLiked && !snap.empty) {
-      snap.forEach(async (d) => { await deleteDoc(d.ref); });
+      const deletes = snap.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletes);
     }
   } catch (error) {
     console.error("Error toggling like:", error);
@@ -740,7 +739,8 @@ export async function toggleFollowApi(followerId, followingId, isFollowing) {
     if (isFollowing && snap.empty) {
       await addDoc(collection(db, COL.FOLLOWS), { followerId, followingId, createdAt: serverTimestamp() });
     } else if (!isFollowing && !snap.empty) {
-      snap.forEach(async (d) => { await deleteDoc(d.ref); });
+      const deletes = snap.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletes);
     }
   } catch (error) {
     console.error("Error toggling follow:", error);
@@ -755,7 +755,8 @@ export async function toggleSaveApi(postId, userId, isSaved) {
     if (isSaved && snap.empty) {
       await addDoc(collection(db, COL.SAVES), { postId, userId, createdAt: serverTimestamp() });
     } else if (!isSaved && !snap.empty) {
-      snap.forEach(async (d) => { await deleteDoc(d.ref); });
+      const deletes = snap.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletes);
     }
   } catch (error) {
     console.error("Error toggling save:", error);

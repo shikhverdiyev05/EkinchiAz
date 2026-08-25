@@ -111,28 +111,8 @@ function PartnerTicker() {
 }
 
 export function AboutPage() {
-  const [active, setActive] = useState('melumat');
   const [selectedMember, setSelectedMember] = useState(0);
   const sectionRefs = useRef({});
-
-  const scrollTo = (id) => {
-    setActive(id);
-    sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  useEffect(() => {
-    const obs = NAV_ITEMS.map(({ id }) => {
-      const el = sectionRefs.current[id];
-      if (!el) return null;
-      const o = new IntersectionObserver(
-        ([e]) => { if (e.isIntersecting) setActive(id); },
-        { threshold: 0.15, rootMargin: '-80px 0px -60% 0px' }
-      );
-      o.observe(el);
-      return o;
-    }).filter(Boolean);
-    return () => obs.forEach(o => o.disconnect());
-  }, []);
 
   const member = TEAM[selectedMember] || TEAM[0];
   const colors = COLOR_MAP[member.color];
@@ -166,31 +146,6 @@ export function AboutPage() {
                 <div className="text-[10px] text-emerald-200/70 font-semibold mt-0.5">{l}</div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* STICKY NAV */}
-      <div className="sticky top-16 sm:top-20 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-1 overflow-x-auto py-2.5" style={{ scrollbarWidth: 'none' }}>
-            {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-              const isActive = active === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => scrollTo(id)}
-                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl text-[11px] font-bold transition-all duration-200 whitespace-nowrap ${
-                    isActive
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className={`w-3 h-3 shrink-0 ${isActive ? 'text-white' : 'text-emerald-600'}`} />
-                  {label}
-                </button>
-              );
-            })}
           </div>
         </div>
       </div>

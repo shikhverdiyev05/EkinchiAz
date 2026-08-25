@@ -64,18 +64,19 @@ export function PostCard({
   const handleFollowClick = async () => {
     if (onFollow) {
       onFollow(post.userId);
-      setFollowing(!following);
+      setFollowing(f => !f);
       return;
     }
     if (!currentUser) return onShowToast?.('Evvelce daxil olun');
     if (currentUser.id === post.userId) return;
     
-    const newFollowing = !following;
+    const prevFollowing = following;
+    const newFollowing = !prevFollowing;
     setFollowing(newFollowing);
     try {
       await toggleFollowApi(currentUser.id, post.userId, newFollowing);
     } catch (error) {
-      setFollowing(following);
+      setFollowing(prevFollowing);
     }
   };
 

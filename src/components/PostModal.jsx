@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { X, Heart, MessageCircle, Share2, Bookmark, ChevronLeft, ChevronRight, Send, Check, UserPlus, UserCheck } from 'lucide-react';
 import { getCommentsApi, addCommentApi, deleteCommentApi, toggleLikeApi, toggleSaveApi, toggleFollowApi } from '../services/apiService';
 
+function formatCommentDate(createdAt) {
+  if (!createdAt) return 'İndi';
+  if (createdAt instanceof Date) return createdAt.toLocaleDateString('az-AZ');
+  if (createdAt.seconds) return new Date(createdAt.seconds * 1000).toLocaleDateString('az-AZ');
+  return new Date(createdAt).toLocaleDateString('az-AZ');
+}
+
 export function PostModal({ 
   post, 
   isOpen, 
@@ -26,12 +33,14 @@ export function PostModal({
   const [isSaved, setIsSaved] = useState(initSaved);
   const [likesCount, setLikesCount] = useState(post?.likesCount || 0);
   const [shareCopied, setShareCopied] = useState(false);
-  const [following, setFollowing] = useState(isFollowing || false);
+  const followingValue = typeof isFollowing === 'function' ? isFollowing() : (isFollowing || false);
+  const [following, setFollowing] = useState(followingValue);
 
   useEffect(() => {
     if (isOpen && post) {
       loadComments();
-      setFollowing(isFollowing || false);
+      const fv = typeof isFollowing === 'function' ? isFollowing() : (isFollowing || false);
+      setFollowing(fv);
     }
   }, [isOpen, post, isFollowing]);
 
@@ -102,7 +111,7 @@ export function PostModal({
       postId: post.id,
       userId: currentUser.id,
       authorName: currentUser.name || 'Istifadeci',
-      authorPhoto: currentUser.photoURL || null,
+      authorPhoto: currentUser.photoURL || currentUser.avatar || null,
       text: newComment.trim(),
     };
 
@@ -208,7 +217,7 @@ export function PostModal({
                         <p className="text-sm text-gray-800">{c.text}</p>
                       </div>
                       <div className="flex gap-3 mt-1 ml-2 text-[10px] text-gray-400 font-medium">
-                        <span>{c.createdAt ? new Date(c.createdAt.seconds * 1000).toLocaleDateString() : 'Indi'}</span>
+                        <span>{formatCommentDate(c.createdAt)}</span>
                         {(currentUser?.id === c.userId || currentUser?.id === post.userId) && (
                           <button onClick={() => handleDeleteComment(c.id)} className="hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">Sil</button>
                         )}

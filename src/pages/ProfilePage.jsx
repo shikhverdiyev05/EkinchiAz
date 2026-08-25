@@ -279,12 +279,12 @@ export default function ProfilePage({
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Aktiv Elan", value: activeListings, color: "emerald" },
-              { label: "Paylaşım", value: userPosts.length, color: "blue" },
-              { label: "İzləyici", value: followersCount, color: "purple" },
-              { label: "İzlənilən", value: followingCount, color: "amber" },
-            ].map(({ label, value, color }) => (
-              <div key={label} className={`p-4 rounded-2xl bg-${color}-50 border border-${color}-100 text-center`}>
+              { label: "Aktiv Elan", value: activeListings, color: "emerald", bg: "bg-emerald-50", border: "border-emerald-100" },
+              { label: "Paylaşım", value: userPosts.length, color: "blue", bg: "bg-blue-50", border: "border-blue-100" },
+              { label: "İzləyici", value: followersCount, color: "purple", bg: "bg-purple-50", border: "border-purple-100" },
+              { label: "İzlənilən", value: followingCount, color: "amber", bg: "bg-amber-50", border: "border-amber-100" },
+            ].map(({ label, value, bg, border }) => (
+              <div key={label} className={`p-4 rounded-2xl ${bg} ${border} border text-center`}>
                 <p className="text-2xl font-black text-gray-900">{value}</p>
                 <p className="text-[11px] text-gray-500 font-semibold">{label}</p>
               </div>

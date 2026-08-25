@@ -30,17 +30,18 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
       }
     } catch (error) {
       console.error('loadData error:', error);
+      onShowToast?.('Paylaşımlar yüklənərkən xəta baş verdi');
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, onShowToast]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
   const handleLike = async (postId) => {
-    if (!currentUser) return onShowToast?.('Evvelce daxil olun');
+    if (!currentUser) return onShowToast?.('Əvvəlcə daxil olun');
     const post = posts.find(p => p.id === postId);
     if (!post) return;
     
@@ -53,11 +54,12 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
     } catch (error) {
       setUserLikes(prev => newLiked ? prev.filter(id => id !== postId) : [...prev, postId]);
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, likesCount: newLiked ? (p.likesCount || 0) - 1 : (p.likesCount || 0) + 1 } : p));
+      onShowToast?.('Bəyənənlər siyahısı yenilənərkən xəta baş verdi');
     }
   };
 
   const handleSave = async (postId) => {
-    if (!currentUser) return onShowToast?.('Evvelce daxil olun');
+    if (!currentUser) return onShowToast?.('Əvvəlcə daxil olun');
     const newSaved = !userSaves.includes(postId);
     setUserSaves(prev => newSaved ? [...prev, postId] : prev.filter(id => id !== postId));
     
@@ -65,16 +67,17 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
       await toggleSaveApi(postId, currentUser.id, newSaved);
     } catch (error) {
       setUserSaves(prev => newSaved ? prev.filter(id => id !== postId) : [...prev, postId]);
+      onShowToast?.('Yadda saxlama yenilənərkən xəta baş verdi');
     }
   };
 
   const handleShare = (postId) => {
     navigator.clipboard.writeText(window.location.origin + '/?post=' + postId);
-    onShowToast?.('Link kopyalandi');
+    onShowToast?.('Link kopyalandı');
   };
 
   const handleFollow = async (authorId) => {
-    if (!currentUser) return onShowToast?.('Evvelce daxil olun');
+    if (!currentUser) return onShowToast?.('Əvvəlcə daxil olun');
     if (currentUser.id === authorId) return;
     
     const newFollowing = !userFollows.includes(authorId);
@@ -84,25 +87,35 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
       await toggleFollowApi(currentUser.id, authorId, newFollowing);
     } catch (error) {
       setUserFollows(prev => newFollowing ? prev.filter(id => id !== authorId) : [...prev, authorId]);
+      onShowToast?.('İzləmə yenilənərkən xəta baş verdi');
     }
   };
 
   const isFollowing = (authorId) => userFollows.includes(authorId);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center shadow-sm">
-            <Users className="w-7 h-7 text-emerald-700" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-black text-gray-900">Paylasimlar</h1>
-            <p className="text-sm text-gray-500">Aqrar icmanin tecrube ve fikirlari</p>
-          </div>
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 pb-24 lg:pb-16 animate-fadeIn">
+      
+      {/* Banner */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-800 text-white relative overflow-hidden shadow-md">
+        <div className="relative z-10 max-w-2xl">
+          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-white/20 backdrop-blur-md text-emerald-100 border border-white/20 inline-block">
+            Sosial Sebeke
+          </span>
+          <h1 className="text-2xl sm:text-4xl font-black mt-2 tracking-tight">
+            Fermer Paylasimlari
+          </h1>
+          <p className="text-xs sm:text-sm text-emerald-100/90 mt-1.5 leading-relaxed">
+            Aqrar icmanin tecrube ve fikirlari. Tecrube paylasin, sual verin, birlikde inkisaf edek.
+          </p>
         </div>
+      </div>
+
+      {/* Create Post Button & Posts Grid */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-black text-gray-900">Paylasimlar</h2>
         <button 
-          onClick={() => { if (!currentUser) return onShowToast?.('Evvelce daxil olun'); setIsCreateOpen(true); }}
+          onClick={() => { if (!currentUser) return onShowToast?.('Əvvəlcə daxil olun'); setIsCreateOpen(true); }}
           className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-sm"
         >
           <Plus className="w-5 h-5" /> Yeni Paylasim
@@ -119,7 +132,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
           <p className="text-gray-500">Hele hec bir paylasim yoxdur.</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {posts.map(post => (
             <PostCard 
               key={post.id} 
