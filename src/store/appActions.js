@@ -40,15 +40,20 @@ export const pageToRouteMap = {
   'social': '/sosial'
 };
 
-export function navigateTo(dispatch, page, product = null) {
+export function navigateTo(dispatch, page, product = null, user = null) {
   dispatch({ type: A.SET_PAGE, page });
   
   let path = '/';
   if (page === 'product-detail' && product) {
     dispatch({ type: A.SET_SELECTED_PRODUCT, product });
     path = `/mehsul/${product.id}`;
+  } else if (page === 'user-profile' && user) {
+    dispatch({ type: A.SET_SELECTED_USER, user });
+    path = `/istifadeci/${user}`;
   } else if (pageToRouteMap[page]) {
     path = pageToRouteMap[page];
+  } else if (page === 'not-found') {
+    path = window.location.pathname;
   }
 
   if (window.location.pathname !== path) {

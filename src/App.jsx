@@ -29,6 +29,7 @@ import CartDrawer           from './components/CartDrawer';
 import RentalBookingModal   from './components/RentalBookingModal';
 import SellerContactModal   from './components/SellerContactModal';
 import AuthModal            from './components/AuthModal';
+import { CreatePostModal }  from './components/CreatePostModal';
 
 // Səhifələr
 import HomePage             from './pages/HomePage';
@@ -41,7 +42,11 @@ import { FaqPage }          from './pages/FaqPage';
 import { ContactPage }      from './pages/ContactPage';
 import { SocialFeedPage }   from './pages/SocialFeedPage';
 import { PublicProfilePage } from './pages/PublicProfilePage';
+import { NotFoundPage }      from './pages/NotFoundPage';
 import { setStoredCurrentUser } from './services/storageService';
+import { getPostByIdApi } from './services/apiService';
+import { resolvePageFromPath } from './store/appReducer';
+import { PostModal } from './components/PostModal';
 
 export default function App() {
   const [state, dispatch] = useReducer(appReducer, initialState);
@@ -53,35 +58,47 @@ export default function App() {
     cartItems, cartOpen,
     favorites,
     orders, rentalBookings,
-    rentModalProduct, contactModalProduct,
+    rentModalProduct, contactModalProduct, isCreatePostOpen, editPostData,
     toast,
   } = state;
+
+  const [deepLinkPost, setDeepLinkPost] = React.useState(null);
 
   useEffect(() => {
     loadInitialData(dispatch);
 
-    const routeToPageMap = {
-      '/': 'home',
-      '/elanlar': 'listings',
-      '/yeni-elan': 'add-listing',
-      '/profil': 'profile',
-      '/haqqimizda': 'about',
-      '/faq': 'faq',
-      '/elaqe': 'contact',
-      '/sosial': 'social'
-    };
-
     const handlePopState = () => {
       const path = window.location.pathname;
+      const urlParams = new URLSearchParams(window.location.search);
+      const postId = urlParams.get('post');
+
+      if (postId) {
+        dispatch({ type: A.SET_PAGE, page: 'social' });
+        getPostByIdApi(postId).then(p => {
+          if (p) setDeepLinkPost(p);
+        });
+        return;
+      }
+
+      if (path.startsWith('/istifadeci/')) {
+        const uid = path.replace('/istifadeci/', '');
+        if (uid) {
+          dispatch({ type: A.SET_SELECTED_USER, user: uid });
+          dispatch({ type: A.SET_PAGE, page: 'user-profile' });
+          return;
+        }
+      }
+
       if (path.startsWith('/mehsul/')) {
         dispatch({ type: A.SET_PAGE, page: 'product-detail' });
         return;
       }
-      const mappedPage = routeToPageMap[path] || 'home';
+
+      const mappedPage = resolvePageFromPath(path);
       dispatch({ type: A.SET_PAGE, page: mappedPage });
     };
 
-    // İlkin yükləmədə cari URL-dən səhifəni oxu (refresh zamanı)
+    // İlkin yükləmədə cari URL-dən səhifəni oxu (refresh zamanı və ya direct link)
     handlePopState();
 
     window.addEventListener('popstate', handlePopState);
@@ -97,12 +114,22 @@ export default function App() {
       if (found) {
         dispatch({ type: A.SET_SELECTED_PRODUCT, product: found });
       } else {
-        // If product not found, fallback to listings
-        window.history.replaceState(null, '', '/elanlar');
-        dispatch({ type: A.SET_PAGE, page: 'listings' });
+        // If product not found, show 404 or listings
+        dispatch({ type: A.SET_PAGE, page: 'not-found' });
       }
     }
   }, [products, selectedProduct]);
+
+  // ── ?post=... query parametri birbaşa daxil ediləndə aç ──
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('post');
+    if (postId && !deepLinkPost) {
+      getPostByIdApi(postId).then(post => {
+        if (post) setDeepLinkPost(post);
+      });
+    }
+  }, [deepLinkPost]);
 
   // ── Giriş etmiş istifadəçinin məlumatları ────────────────────────────
   useEffect(() => {
@@ -165,6 +192,7 @@ export default function App() {
           openAuthModal={() => dispatch({ type: A.OPEN_AUTH })}
           openProfile={() => navigateTo(dispatch, 'profile')}
           onAddListingClick={() => handleAddListingClick(dispatch, currentUser)}
+        onOpenCreatePost={() => dispatch({ type: A.OPEN_CREATE_POST })}
           onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
         />
 
@@ -180,6 +208,7 @@ export default function App() {
             onNavigateListings={(f) => handleNavigateListings(dispatch, f)}
             onSelectCategory={(catName) => handleNavigateListings(dispatch, { category: catName })}
             onAddListingClick={() => handleAddListingClick(dispatch, currentUser)}
+        onOpenCreatePost={() => dispatch({ type: A.OPEN_CREATE_POST })}
           />
         )}
 
@@ -254,22 +283,33 @@ export default function App() {
               dispatch({ type: A.OPEN_RENT_MODAL, product: productMock });
             }}
             onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
+            onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })}
+            onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }}
           />
         )}
 
-        {activePage === 'social'  && <SocialFeedPage currentUser={currentUser} onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }} onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
+        {activePage === 'social'  && <SocialFeedPage currentUser={currentUser} onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })} onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }} onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
         {activePage === 'user-profile' && selectedUser && (
           <PublicProfilePage 
             userId={selectedUser}
             currentUser={currentUser}
             onNavigate={(page) => navigateTo(dispatch, page)}
             onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }}
+            onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })}
             onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
+            onViewDetails={(p) => navigateTo(dispatch, 'product-detail', p)}
+            onAddToCart={(p) => handleAddToCart(dispatch, p, currentUser, (msg) => handleRequireAuth(dispatch, msg))}
+            onToggleFavorite={(id) => handleToggleFavorite(dispatch, id, currentUser, (msg) => handleRequireAuth(dispatch, msg))}
+            favorites={favorites}
           />
         )}
         {activePage === 'about'   && <AboutPage      onNavigateListings={(f) => handleNavigateListings(dispatch, f)} />}
         {activePage === 'faq'     && <FaqPage         onNavigateContact={() => navigateTo(dispatch, 'contact')} />}
         {activePage === 'contact' && <ContactPage     onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
+
+        {!['home', 'listings', 'product-detail', 'add-listing', 'profile', 'social', 'user-profile', 'about', 'faq', 'contact'].includes(activePage) && (
+          <NotFoundPage onNavigate={(page) => navigateTo(dispatch, page)} />
+        )}
 
       </main>
 
@@ -314,6 +354,41 @@ export default function App() {
         onClose={() => dispatch({ type: A.CLOSE_AUTH })}
         onAuthSuccess={(user, msg) => handleAuthSuccess(dispatch, user, msg, cartItems, favorites)}
         initialMessage={authMessage}
+      />
+
+      {/* Deep Link Post Modal */}
+      {deepLinkPost && (
+        <PostModal
+          isOpen={!!deepLinkPost}
+          onClose={() => {
+            setDeepLinkPost(null);
+            // Clear query param without full reload
+            window.history.replaceState(null, '', window.location.pathname);
+          }}
+          post={deepLinkPost}
+          isLiked={(favorites || []).includes(deepLinkPost?.id)}
+          isSaved={false}
+          onNavigateUser={(uid) => {
+            setDeepLinkPost(null);
+            dispatch({ type: A.SET_SELECTED_USER, user: uid });
+            navigateTo(dispatch, 'user-profile', null, uid);
+          }}
+          currentUser={currentUser}
+          onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
+        />
+      )}
+
+      <CreatePostModal 
+        isOpen={isCreatePostOpen}
+        onClose={() => dispatch({ type: A.CLOSE_CREATE_POST })}
+        existingPost={editPostData}
+        currentUser={currentUser}
+        onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
+        onSuccess={() => {
+          window.dispatchEvent(new Event('refreshPosts'));
+          dispatch({ type: A.SHOW_TOAST, message: 'Paylaşım uğurla saxlanıldı!' });
+          setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000);
+        }}
       />
 
     </div>

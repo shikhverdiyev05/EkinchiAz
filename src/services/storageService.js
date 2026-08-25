@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 
 // ─────────────────────────────────────────────
 // Auth, Cart & Favorites Storage Service

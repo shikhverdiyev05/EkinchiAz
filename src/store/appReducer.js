@@ -61,7 +61,7 @@ export const A = {
 };
 
 // ─── Initial State ────────────────────────────────────────────────────────
-const routeToPageMap = {
+export const routeToPageMap = {
   '/': 'home',
   '/elanlar': 'listings',
   '/yeni-elan': 'add-listing',
@@ -72,11 +72,22 @@ const routeToPageMap = {
   '/sosial': 'social'
 };
 
+export function resolvePageFromPath(path) {
+  if (!path || path === '/') return 'home';
+  if (path.startsWith('/mehsul/')) return 'product-detail';
+  if (path.startsWith('/istifadeci/')) return 'user-profile';
+  if (routeToPageMap[path]) return routeToPageMap[path];
+  // If path is not found in known routes:
+  return 'not-found';
+}
+
 function getInitialPage() {
   if (typeof window === 'undefined') return 'home';
   const path = window.location.pathname;
-  if (path.startsWith('/mehsul/')) return 'product-detail';
-  return routeToPageMap[path] || 'home';
+  // If query string has ?post=..., route to social feed where modal will open
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('post')) return 'social';
+  return resolvePageFromPath(path);
 }
 
 export const initialState = {
@@ -84,6 +95,8 @@ export const initialState = {
   activePage:          getInitialPage(),
   selectedProduct:     null,
   selectedUser:        null,
+  isCreatePostOpen:    false,
+  editPostData:        null,
   listingFilters:      {},
 
   // Data
@@ -123,7 +136,11 @@ export function appReducer(state, action) {
     /* ── Routing ── */
     case A.SET_PAGE:
       return { ...state, activePage: action.page };
-        case A.SET_SELECTED_USER:
+            case A.OPEN_CREATE_POST:
+      return { ...state, isCreatePostOpen: true, editPostData: action.post || null };
+    case A.CLOSE_CREATE_POST:
+      return { ...state, isCreatePostOpen: false, editPostData: null };
+    case A.SET_SELECTED_USER:
       return { ...state, selectedUser: action.user };
     case A.SET_SELECTED_PRODUCT:
       return { ...state, selectedProduct: action.product };
