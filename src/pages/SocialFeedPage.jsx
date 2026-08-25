@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Users, Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { getPostsApi, checkUserLikesSavesApi, toggleLikeApi, toggleSaveApi, toggleFollowApi } from '../services/apiService';
 import { PostCard } from '../components/PostCard';
 import { PostModal } from '../components/PostModal';
@@ -37,6 +37,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
   }, [currentUser, onShowToast]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -51,7 +52,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
     
     try {
       await toggleLikeApi(postId, currentUser.id, newLiked);
-    } catch (error) {
+    } catch {
       setUserLikes(prev => newLiked ? prev.filter(id => id !== postId) : [...prev, postId]);
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, likesCount: newLiked ? (p.likesCount || 0) - 1 : (p.likesCount || 0) + 1 } : p));
       onShowToast?.('Bəyənənlər siyahısı yenilənərkən xəta baş verdi');
@@ -65,7 +66,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
     
     try {
       await toggleSaveApi(postId, currentUser.id, newSaved);
-    } catch (error) {
+    } catch {
       setUserSaves(prev => newSaved ? prev.filter(id => id !== postId) : [...prev, postId]);
       onShowToast?.('Yadda saxlama yenilənərkən xəta baş verdi');
     }
@@ -85,7 +86,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onShowToast }) {
     
     try {
       await toggleFollowApi(currentUser.id, authorId, newFollowing);
-    } catch (error) {
+    } catch {
       setUserFollows(prev => newFollowing ? prev.filter(id => id !== authorId) : [...prev, authorId]);
       onShowToast?.('İzləmə yenilənərkən xəta baş verdi');
     }

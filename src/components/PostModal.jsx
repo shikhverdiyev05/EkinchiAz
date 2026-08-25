@@ -9,6 +9,12 @@ function formatCommentDate(createdAt) {
   return new Date(createdAt).toLocaleDateString('az-AZ');
 }
 
+function formatPostDate(createdAt) {
+  if (!createdAt) return new Date().toLocaleDateString('az-AZ');
+  if (createdAt.seconds) return new Date(createdAt.seconds * 1000).toLocaleDateString('az-AZ');
+  return new Date(createdAt).toLocaleDateString('az-AZ');
+}
+
 export function PostModal({ 
   post, 
   isOpen, 
@@ -33,16 +39,9 @@ export function PostModal({
   const [isSaved, setIsSaved] = useState(initSaved);
   const [likesCount, setLikesCount] = useState(post?.likesCount || 0);
   const [shareCopied, setShareCopied] = useState(false);
-  const followingValue = typeof isFollowing === 'function' ? isFollowing() : (isFollowing || false);
-  const [following, setFollowing] = useState(followingValue);
-
-  useEffect(() => {
-    if (isOpen && post) {
-      loadComments();
-      const fv = typeof isFollowing === 'function' ? isFollowing() : (isFollowing || false);
-      setFollowing(fv);
-    }
-  }, [isOpen, post, isFollowing]);
+  
+  const getFollowingValue = () => typeof isFollowing === 'function' ? isFollowing() : (isFollowing || false);
+  const [following, setFollowing] = useState(getFollowingValue);
 
   const loadComments = async () => {
     setLoading(true);
@@ -50,6 +49,15 @@ export function PostModal({
     setComments(data);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (isOpen && post) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadComments();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFollowing(getFollowingValue);
+    }
+  }, [isOpen, post, isFollowing]);
 
   if (!isOpen || !post) return null;
 
@@ -88,7 +96,7 @@ export function PostModal({
   const handleFollowClick = async () => {
     if (onFollow) {
       onFollow(post.userId);
-      setFollowing(!following);
+      setFollowing(f => !f);
       return;
     }
     if (!currentUser) return onShowToast?.('Evvelce daxil olun');
@@ -98,7 +106,7 @@ export function PostModal({
     setFollowing(newFollowing);
     try {
       await toggleFollowApi(currentUser.id, post.userId, newFollowing);
-    } catch (error) {
+    } catch {
       setFollowing(following);
     }
   };
@@ -171,7 +179,7 @@ export function PostModal({
             />
             <div className="flex-1">
               <h4 className="font-bold text-gray-900 cursor-pointer" onClick={() => { onClose(); onNavigateUser?.(post.userId); }}>{post.authorName}</h4>
-              <p className="text-xs text-gray-500">{new Date(post.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString('az-AZ')}</p>
+              <p className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</p>
             </div>
             {currentUser && currentUser.id !== post.userId && (
               <button 

@@ -27,11 +27,13 @@ export function PostCard({
   const [shareCopied, setShareCopied] = useState(false);
   const [following, setFollowing] = useState(isFollowing || false);
 
-  useEffect(() => {
-    setFollowing(isFollowing || false);
-  }, [isFollowing]);
-
   const isOwner = currentUser?.id === post.userId;
+
+  const formatPostDate = (createdAt) => {
+    if (!createdAt) return new Date().toLocaleDateString('az-AZ');
+    if (createdAt.seconds) return new Date(createdAt.seconds * 1000).toLocaleDateString('az-AZ');
+    return new Date(createdAt).toLocaleDateString('az-AZ');
+  };
 
   const handleLike = async () => {
     if (onLike) {
@@ -79,7 +81,7 @@ export function PostCard({
     setFollowing(newFollowing);
     try {
       await toggleFollowApi(currentUser.id, post.userId, newFollowing);
-    } catch (error) {
+    } catch {
       setFollowing(prevFollowing);
     }
   };
@@ -112,10 +114,10 @@ export function PostCard({
             alt={post.authorName} 
             className="w-10 h-10 rounded-full object-cover group-hover:ring-2 ring-emerald-100 transition-all"
           />
-          <div>
-            <h4 className="font-bold text-gray-900 text-sm group-hover:text-emerald-700 transition-colors">{post.authorName}</h4>
-            <p className="text-xs text-gray-500">{new Date(post.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString('az-AZ')}</p>
-          </div>
+<div>
+              <h4 className="font-bold text-gray-900 text-sm group-hover:text-emerald-700 transition-colors">{post.authorName}</h4>
+              <p className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</p>
+            </div>
         </div>
 
         <div className="flex items-center gap-2">

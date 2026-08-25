@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/static-components */
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   User, FileText, Share2, Bookmark, Heart, MessageCircle,
   Users, UserCheck, Settings, LogOut, Plus, X, RefreshCw,
@@ -98,7 +98,7 @@ export default function ProfilePage({
       const stats = await checkUserLikesSavesApi(user.id);
       setUserLikes(stats.likedPostIds);
       setUserSaves(stats.savedPostIds);
-    } catch (err) {
+    } catch {
       console.error('Load user posts error:', err);
     } finally {
       setPostsLoading(false);
@@ -107,6 +107,7 @@ export default function ProfilePage({
 
   // Load posts when user changes or posts tab is activated
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (activeTab === 'posts' && user?.id) {
       loadUserPosts();
     }

@@ -41,6 +41,7 @@ export function PublicProfilePage({ userId, onNavigate, onNavigateUser, currentU
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [userId, currentUser]);
 
@@ -52,7 +53,7 @@ export function PublicProfilePage({ userId, onNavigate, onNavigateUser, currentU
     try {
       await toggleFollowApi(currentUser.id, userId, newState);
       onShowToast?.(newState ? 'İzləməyə başladınız' : 'İzləmədən çıxdınız');
-    } catch (error) {
+    } catch {
       setIsFollowing(!newState);
       onShowToast?.('İzləmə yenilənərkən xəta baş verdi');
     }
