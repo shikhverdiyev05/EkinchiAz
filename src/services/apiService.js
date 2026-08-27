@@ -1148,5 +1148,3 @@ export async function deleteCommentApi(commentId, postId = null) {
   }
   return true;
 }
-
-
