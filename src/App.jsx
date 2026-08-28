@@ -284,17 +284,38 @@ export default function App() {
             }}
             onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
             onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })}
-            onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }}
+            onNavigateUser={(uid) => {
+              if (uid === currentUser?.id) {
+                navigateTo(dispatch, 'profile');
+              } else {
+                dispatch({ type: A.SET_SELECTED_USER, user: uid });
+                setPublicModalOpen(true);
+              }
+            }}
           />
         )}
 
-        {activePage === 'social'  && <SocialFeedPage currentUser={currentUser} onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })} onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }} onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
+        {activePage === 'social'  && <SocialFeedPage currentUser={currentUser} onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })} onNavigateUser={(uid) => {
+              if (uid === currentUser?.id) {
+                navigateTo(dispatch, 'profile');
+              } else {
+                dispatch({ type: A.SET_SELECTED_USER, user: uid });
+                setPublicModalOpen(true);
+              }
+            }} onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
         {activePage === 'user-profile' && selectedUser && (
           <PublicProfilePage 
             userId={selectedUser}
             currentUser={currentUser}
             onNavigate={(page) => navigateTo(dispatch, page)}
-            onNavigateUser={(uid) => { dispatch({ type: A.SET_SELECTED_USER, user: uid }); navigateTo(dispatch, 'user-profile'); }}
+            onNavigateUser={(uid) => {
+              if (uid === currentUser?.id) {
+                navigateTo(dispatch, 'profile');
+              } else {
+                dispatch({ type: A.SET_SELECTED_USER, user: uid });
+                setPublicModalOpen(true);
+              }
+            }}
             onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })}
             onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
             onViewDetails={(p) => navigateTo(dispatch, 'product-detail', p)}
