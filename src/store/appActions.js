@@ -37,7 +37,8 @@ export const pageToRouteMap = {
   'about': '/haqqimizda',
   'faq': '/faq',
   'contact': '/elaqe',
-  'social': '/sosial'
+  'social': '/sosial',
+  'create-post': '/paylas'
 };
 
 export function navigateTo(dispatch, page, product = null, user = null) {

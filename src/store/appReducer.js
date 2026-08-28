@@ -14,6 +14,7 @@ export const A = {
   SET_PAGE:             'SET_PAGE',
   SET_SELECTED_PRODUCT: 'SET_SELECTED_PRODUCT',
   SET_LISTING_FILTERS:  'SET_LISTING_FILTERS',
+  SET_EDIT_POST:        'SET_EDIT_POST',
 
   // Data
   SET_PRODUCTS:  'SET_PRODUCTS',
@@ -69,7 +70,8 @@ export const routeToPageMap = {
   '/haqqimizda': 'about',
   '/faq': 'faq',
   '/elaqe': 'contact',
-  '/sosial': 'social'
+  '/sosial': 'social',
+  '/paylas': 'create-post',
 };
 
 export function resolvePageFromPath(path) {
@@ -95,7 +97,6 @@ export const initialState = {
   activePage:          getInitialPage(),
   selectedProduct:     null,
   selectedUser:        null,
-  isCreatePostOpen:    false,
   editPostData:        null,
   listingFilters:      {},
 
@@ -135,11 +136,10 @@ export function appReducer(state, action) {
 
     /* ── Routing ── */
     case A.SET_PAGE:
-      return { ...state, activePage: action.page };
-            case A.OPEN_CREATE_POST:
-      return { ...state, isCreatePostOpen: true, editPostData: action.post || null };
-    case A.CLOSE_CREATE_POST:
-      return { ...state, isCreatePostOpen: false, editPostData: null };
+      return { ...state, activePage: action.page, editPostData: action.page === 'create-post' ? state.editPostData : null };
+    case A.SET_EDIT_POST:
+      return { ...state, editPostData: action.post };
+
     case A.SET_SELECTED_USER:
       return { ...state, selectedUser: action.user };
     case A.SET_SELECTED_PRODUCT:

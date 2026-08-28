@@ -19,7 +19,7 @@ const TRENDING_TOPICS = [
   { tag: '', count: '', label: '' }  
 ];
 
-export function SocialFeedPage({ onNavigateUser, currentUser, onEditPost, onShowToast }) {
+export function SocialFeedPage({ onNavigateUser, currentUser, onNavigateCreatePost, onShowToast }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -101,7 +101,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onEditPost, onShow
             </button>
 
             <button
-              onClick={() => onEditPost?.(null)}
+              onClick={() => onNavigateCreatePost?.()}
               className="px-6 py-3.5 bg-amber-400 hover:bg-amber-500 text-gray-950 font-black text-xs sm:text-sm rounded-2xl shadow-lg transition-all flex items-center gap-2 active:scale-95"
             >
               <Plus className="w-5 h-5 stroke-[3]" />
@@ -217,7 +217,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onEditPost, onShow
                   : 'İlk paylaşımı edərək aqrar təcrübənizi digər fermerlərlə bölüşün!'}
               </p>
               <button
-                onClick={() => onEditPost?.(null)}
+                onClick={() => onNavigateCreatePost?.()}
                 className="mt-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition"
               >
                 İndi Paylaşım Et
@@ -232,7 +232,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onEditPost, onShow
                   isLiked={userLikes.includes(post.id)}
                   isSaved={userSaves.includes(post.id)}
                   onOpenModal={setSelectedPost}
-                  onEdit={p => onEditPost?.(p)}
+                  onEdit={p => onNavigateCreatePost?.(p)}
                   onDelete={id => setPosts(prev => prev.filter(p => p.id !== id))}
                   onNavigateUser={onNavigateUser}
                   currentUser={currentUser}

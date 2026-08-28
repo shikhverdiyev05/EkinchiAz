@@ -29,7 +29,7 @@ import CartDrawer           from './components/CartDrawer';
 import RentalBookingModal   from './components/RentalBookingModal';
 import SellerContactModal   from './components/SellerContactModal';
 import AuthModal            from './components/AuthModal';
-import { CreatePostModal }  from './components/CreatePostModal';
+import CreatePostPage        from './pages/CreatePostPage';
 
 // Səhifələr
 import HomePage             from './pages/HomePage';
@@ -58,7 +58,7 @@ export default function App() {
     cartItems, cartOpen,
     favorites,
     orders, rentalBookings,
-    rentModalProduct, contactModalProduct, isCreatePostOpen, editPostData,
+    rentModalProduct, contactModalProduct, editPostData,
     toast,
   } = state;
 
@@ -167,8 +167,16 @@ export default function App() {
     },
     onRequireAuth: (msg) => handleRequireAuth(dispatch, msg),
     onNavigateUser:   (userId) => {
-      dispatch({ type: A.SET_SELECTED_USER, user: userId });
-      navigateTo(dispatch, 'user-profile');
+      if (userId === currentUser?.id) {
+        navigateTo(dispatch, 'profile');
+      } else {
+        dispatch({ type: A.SET_SELECTED_USER, user: userId });
+        navigateTo(dispatch, 'user-profile', null, userId);
+      }
+    },
+    onNavigateCreatePost: (post = null) => {
+      dispatch({ type: A.SET_EDIT_POST, post });
+      navigateTo(dispatch, 'create-post');
     },
   };
 
@@ -192,7 +200,7 @@ export default function App() {
           openAuthModal={() => dispatch({ type: A.OPEN_AUTH })}
           openProfile={() => navigateTo(dispatch, 'profile')}
           onAddListingClick={() => handleAddListingClick(dispatch, currentUser)}
-        onOpenCreatePost={() => dispatch({ type: A.OPEN_CREATE_POST })}
+        onOpenCreatePost={() => navigateTo(dispatch, 'create-post')}
           onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
         />
 
@@ -208,7 +216,7 @@ export default function App() {
             onNavigateListings={(f) => handleNavigateListings(dispatch, f)}
             onSelectCategory={(catName) => handleNavigateListings(dispatch, { category: catName })}
             onAddListingClick={() => handleAddListingClick(dispatch, currentUser)}
-        onOpenCreatePost={() => dispatch({ type: A.OPEN_CREATE_POST })}
+        onOpenCreatePost={() => navigateTo(dispatch, 'create-post')}
           />
         )}
 
@@ -283,52 +291,38 @@ export default function App() {
               dispatch({ type: A.OPEN_RENT_MODAL, product: productMock });
             }}
             onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
-            onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })}
-            onNavigateUser={(uid) => {
-              if (uid === currentUser?.id) {
-                navigateTo(dispatch, 'profile');
-              } else {
-                dispatch({ type: A.SET_SELECTED_USER, user: uid });
-                setPublicModalOpen(true);
-              }
-            }}
+
           />
         )}
 
-        {activePage === 'social'  && <SocialFeedPage currentUser={currentUser} onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })} onNavigateUser={(uid) => {
-              if (uid === currentUser?.id) {
-                navigateTo(dispatch, 'profile');
-              } else {
-                dispatch({ type: A.SET_SELECTED_USER, user: uid });
-                setPublicModalOpen(true);
-              }
-            }} onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
+        {activePage === 'social'  && <SocialFeedPage {...commonProps} onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
         {activePage === 'user-profile' && selectedUser && (
           <PublicProfilePage 
+            {...commonProps}
             userId={selectedUser}
-            currentUser={currentUser}
             onNavigate={(page) => navigateTo(dispatch, page)}
-            onNavigateUser={(uid) => {
-              if (uid === currentUser?.id) {
-                navigateTo(dispatch, 'profile');
-              } else {
-                dispatch({ type: A.SET_SELECTED_USER, user: uid });
-                setPublicModalOpen(true);
-              }
-            }}
-            onEditPost={(post) => dispatch({ type: A.OPEN_CREATE_POST, post })}
             onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
-            onViewDetails={(p) => navigateTo(dispatch, 'product-detail', p)}
-            onAddToCart={(p) => handleAddToCart(dispatch, p, currentUser, (msg) => handleRequireAuth(dispatch, msg))}
-            onToggleFavorite={(id) => handleToggleFavorite(dispatch, id, currentUser, (msg) => handleRequireAuth(dispatch, msg))}
-            favorites={favorites}
           />
         )}
         {activePage === 'about'   && <AboutPage      onNavigateListings={(f) => handleNavigateListings(dispatch, f)} />}
         {activePage === 'faq'     && <FaqPage         onNavigateContact={() => navigateTo(dispatch, 'contact')} />}
         {activePage === 'contact' && <ContactPage     onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }} />}
 
-        {!['home', 'listings', 'product-detail', 'add-listing', 'profile', 'social', 'user-profile', 'about', 'faq', 'contact'].includes(activePage) && (
+        {activePage === 'create-post' && (
+          <CreatePostPage
+            currentUser={currentUser}
+            existingPost={editPostData}
+            onBack={() => navigateTo(dispatch, 'social')}
+            onSuccess={() => {
+              window.dispatchEvent(new Event('refreshPosts'));
+              dispatch({ type: A.SHOW_TOAST, message: 'Paylaşım uğurla paylaşıldı! 🎉' });
+              setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000);
+            }}
+            onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
+          />
+        )}
+
+        {!['home', 'listings', 'product-detail', 'add-listing', 'profile', 'social', 'user-profile', 'about', 'faq', 'contact', 'create-post'].includes(activePage) && (
           <NotFoundPage onNavigate={(page) => navigateTo(dispatch, page)} />
         )}
 
@@ -399,18 +393,7 @@ export default function App() {
         />
       )}
 
-      <CreatePostModal 
-        isOpen={isCreatePostOpen}
-        onClose={() => dispatch({ type: A.CLOSE_CREATE_POST })}
-        existingPost={editPostData}
-        currentUser={currentUser}
-        onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
-        onSuccess={() => {
-          window.dispatchEvent(new Event('refreshPosts'));
-          dispatch({ type: A.SHOW_TOAST, message: 'Paylaşım uğurla saxlanıldı!' });
-          setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000);
-        }}
-      />
+
 
     </div>
   );

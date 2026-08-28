@@ -19,7 +19,7 @@ export function PublicProfilePage({
   onNavigate,
   onNavigateUser,
   currentUser,
-  onEditPost,
+  onNavigateCreatePost,
   onShowToast,
   onViewDetails,
   onAddToCart,
@@ -280,7 +280,7 @@ export function PublicProfilePage({
                 isLiked={userLikes.includes(post.id)}
                 isSaved={userSaves.includes(post.id)}
                 onOpenModal={setSelectedPost}
-                onEdit={p => onEditPost?.(p)}
+                onEdit={p => onNavigateCreatePost?.(p)}
                 onDelete={id => setPosts(prev => prev.filter(p => p.id !== id))}
                 onNavigateUser={onNavigateUser}
                 currentUser={currentUser}

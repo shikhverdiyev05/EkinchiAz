@@ -10,7 +10,7 @@ import {
 import ProductCard from "../components/ProductCard";
 import { PostCard } from "../components/PostCard";
 import { PostModal } from "../components/PostModal";
-import { CreatePostModal } from "../components/CreatePostModal";
+
 import { updateUserProfileApi, deleteProductApi, deleteBookingApi, getUserPostsApi, checkUserLikesSavesApi } from "../services/apiService";
 import { uploadImageToImgBB } from "../services/imageService";
 
@@ -60,7 +60,7 @@ export default function ProfilePage({
   onViewDetails, onAddToCart, onOpenRentModal, onOpenContactModal,
   onToggleFavorite, currentUser, onRequireAuth, onAddNewListing,
   onUpdateUser, onDeleteListing, onCancelRental, onRenewRental,
-  onShowToast
+  onShowToast, onNavigateUser, onNavigateCreatePost
 }) {
   const [activeTab, setActiveTab] = useState("info");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -81,8 +81,6 @@ export default function ProfilePage({
   const [userLikes, setUserLikes] = useState([]);
   const [userSaves, setUserSaves] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
-  const [editPost, setEditPost] = useState(null);
-  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   const activeListings = userListings.filter(p => p.inStock !== false).length;
   const followersCount = user?.followers || 0;
@@ -108,8 +106,10 @@ export default function ProfilePage({
   // Load posts when user changes or posts tab is activated
   useEffect(() => {
     if (activeTab === 'posts' && user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadUserPosts();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user?.id]);
 
   const handleAvatarChange = (e) => {
@@ -193,7 +193,7 @@ export default function ProfilePage({
             </span>
           </div>
         </div>
-<div className="grid grid-cols-4 gap-1 mt-4">
+  <div className="grid grid-cols-4 gap-1 mt-4">
             {[
               { label: "Elan", value: activeListings },
               { label: "Paylaşım", value: userPosts.length },
@@ -227,7 +227,7 @@ export default function ProfilePage({
         <button onClick={onAddNewListing} className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs flex items-center justify-center gap-2 transition">
           <Plus className="w-4 h-4" /> Yeni Elan
         </button>
-        <button onClick={() => { setEditPost(null); setIsCreatePostOpen(true); }} className="w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-black text-xs flex items-center justify-center gap-2 transition">
+        <button onClick={() => onNavigateCreatePost?.()} className="w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-black text-xs flex items-center justify-center gap-2 transition">
           <Share2 className="w-4 h-4" /> Yeni Paylaşım
         </button>
         <button onClick={onLogout} className="w-full py-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-100 font-bold text-xs flex items-center justify-center gap-2 transition">
@@ -317,14 +317,14 @@ export default function ProfilePage({
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-black text-gray-900">Paylaşımlarım <span className="text-base text-gray-400 font-bold">({userPosts.length})</span></h2>
-            <button onClick={() => { setEditPost(null); setIsCreatePostOpen(true); }} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-xl flex items-center gap-1 transition"><Plus className="w-3 h-3" /> Yeni Paylaşım</button>
+        <button onClick={() => onNavigateCreatePost?.()} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-xl flex items-center gap-1 transition"><Plus className="w-3 h-3" /> Yeni Paylaşım</button>
           </div>
           {postsLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
             </div>
           ) : userPosts.length === 0 ? (
-            <EmptyState icon={<Share2 className="w-6 h-6 text-emerald-600" />} title="Hələ heç bir paylaşım yoxdur." sub="İlk paylaşımınızı yaradaraq təcrübələrinizi bölüşün." cta="Paylaşım Yarad" onCta={() => { setEditPost(null); setIsCreatePostOpen(true); }} />
+            <EmptyState icon={<Share2 className="w-6 h-6 text-emerald-600" />} title="Hələ heç bir paylaşım yoxdur." sub="İlk paylaşımınızı yaradaraq təcrübələrinizi bölüşün." cta="Paylaşım Yarad" onCta={() => onNavigateCreatePost?.()} />
           ) : (
             <div className="space-y-6">
               {userPosts.map(post => (
@@ -334,7 +334,7 @@ export default function ProfilePage({
                   isLiked={userLikes.includes(post.id)}
                   isSaved={userSaves.includes(post.id)}
                   onOpenModal={setSelectedPost}
-                  onEdit={p => { setEditPost(p); setIsCreatePostOpen(true); }}
+                  onEdit={(postToEdit) => onNavigateCreatePost?.(postToEdit)}
                   onDelete={id => setUserPosts(prev => prev.filter(p => p.id !== id))}
                   onNavigateUser={onNavigateUser}
                   currentUser={currentUser}
@@ -351,15 +351,6 @@ export default function ProfilePage({
             isLiked={selectedPost ? userLikes.includes(selectedPost.id) : false}
             isSaved={selectedPost ? userSaves.includes(selectedPost.id) : false}
             onNavigateUser={onNavigateUser}
-            currentUser={currentUser}
-            onShowToast={onShowToast}
-          />
-
-          <CreatePostModal 
-            isOpen={isCreatePostOpen} 
-            onClose={() => setIsCreatePostOpen(false)} 
-            existingPost={editPost}
-            onSuccess={loadUserPosts}
             currentUser={currentUser}
             onShowToast={onShowToast}
           />
