@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/static-components */
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
+import { useState , useEffect } from "react";
 import {
   User, FileText, Share2, Bookmark, Heart, MessageCircle,
   Users, UserCheck, Settings, LogOut, Plus, X, RefreshCw,
