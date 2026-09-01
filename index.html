@@ -2,14 +2,107 @@
 <html lang="az">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/src/assets/logowobg.png"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ekinchi.Az </title>
-    
-    <!-- Google Fonts: DM Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+
+    <!-- ═══════════════════════════════════════════
+         ƏSAS SEO META TƏQLƏRİ
+    ═══════════════════════════════════════════ -->
+    <title>Ekinchi.Az — Azərbaycanın Aqrar E-Ticarət Platforması</title>
+    <meta name="description" content="Ekinchi.Az — Azərbaycanda fermerler, aqro şirkətlər və kənd təsərrüfatı işçiləri üçün rəqəmsal platforma. Kənd təsərrüfatı elanları, texnika icarəsi, toxum, gübrə, fermer paylaşımları və daha çox." />
+    <meta name="keywords" content="ekinchi, aqrar, fermer, kənd təsərrüfatı, Azərbaycan, taxıl, traktor, gübrə, toxum, suvarma, istixana, icarə, satış, elan, aqro platforma, fermerler" />
+    <meta name="author" content="Ekinchi.Az" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="theme-color" content="#059669" />
+    <meta name="language" content="az" />
+    <meta name="geo.region" content="AZ" />
+    <meta name="geo.placename" content="Azərbaycan" />
+    <link rel="canonical" href="https://www.ekinchi.az/" />
+
+    <!-- ═══════════════════════════════════════════
+         OPEN GRAPH (Facebook, WhatsApp, Telegram)
+    ═══════════════════════════════════════════ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ekinchi.Az" />
+    <meta property="og:title" content="Ekinchi.Az — Azərbaycanın Aqrar E-Ticarət Platforması" />
+    <meta property="og:description" content="Fermerlər üçün rəqəmsal platforma: kənd təsərrüfatı məhsulları, texnika icarəsi, aqrar sosial şəbəkə. Torpaqdan süfrəyə!" />
+    <meta property="og:url" content="https://www.ekinchi.az/" />
+    <meta property="og:image" content="https://www.ekinchi.az/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Ekinchi.Az — Aqrar Platforma" />
+    <meta property="og:locale" content="az_AZ" />
+
+    <!-- ═══════════════════════════════════════════
+         TWITTER CARD
+    ═══════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@ekinchiaz" />
+    <meta name="twitter:title" content="Ekinchi.Az — Azərbaycanın Aqrar Platforması" />
+    <meta name="twitter:description" content="Fermerlər üçün rəqəmsal platforma: kənd təsərrüfatı məhsulları, texnika icarəsi, aqrar sosial şəbəkə." />
+    <meta name="twitter:image" content="https://www.ekinchi.az/og-image.png" />
+
+    <!-- ═══════════════════════════════════════════
+         FAVİKON
+    ═══════════════════════════════════════════ -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="shortcut icon" href="/favicon.png" />
+
+    <!-- ═══════════════════════════════════════════
+         JSON-LD YAPILANDIRILMIŞ MƏLUMAT
+    ═══════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Ekinchi.Az",
+      "alternateName": "Ekinchi",
+      "url": "https://www.ekinchi.az",
+      "logo": "https://www.ekinchi.az/favicon.png",
+      "description": "Azərbaycanda fermerler, aqro şirkətlər və kənd təsərrüfatı işçiləri üçün rəqəmsal e-ticarət və sosial platforma.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Heydər Əliyev pr. 105",
+        "addressLocality": "Bakı",
+        "addressCountry": "AZ"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+994556731407",
+        "contactType": "customer service",
+        "availableLanguage": ["Azerbaijani", "Russian"]
+      },
+      "sameAs": [
+        "https://www.facebook.com/ekinchiaz",
+        "https://www.instagram.com/ekinchiaz"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Ekinchi.Az",
+      "url": "https://www.ekinchi.az",
+      "description": "Azərbaycanda kənd təsərrüfatı e-ticarət platforması",
+      "inLanguage": "az",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.ekinchi.az/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- ═══════════════════════════════════════════
+         PERFORMANs — FONT PRECONNECT
+    ═══════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet" />
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -59,13 +152,8 @@
       }
     </script>
     <style>
-      body {
-        font-family: 'DM Sans', sans-serif;
-      }
-      /* Custom smooth scrolling */
-      html {
-        scroll-behavior: smooth;
-      }
+      body { font-family: 'DM Sans', sans-serif; }
+      html { scroll-behavior: smooth; }
     </style>
   </head>
   <body class="bg-[#f4f8f5] text-gray-800 antialiased selection:bg-emerald-600 selection:text-white">
@@ -73,3 +161,4 @@
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+

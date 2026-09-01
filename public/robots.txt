@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.ekinchi.az/sitemap.xml
+
+# Məxfi Sahələr
+Disallow: /api/
+Disallow: /admin/
