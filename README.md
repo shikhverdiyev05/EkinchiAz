@@ -68,16 +68,7 @@ Layihə ən müasir və sürətli veb texnologiyalarından istifadə edilərək 
 *   **Xəritə Sistemi:** `React Leaflet` — Xəritə üzərində elanların dinamik nümayişi.
 *   **Routing:** React daxili (Custom context-based) routing.
 
----
 
-## 📸 Ekran Görüntüləri (Screenshots)
-
-> *Qeyd: Ekran görüntülərini əlavə etmək üçün `docs/` qovluğuna şəkilləri yükləyib linklərini bura yerləşdirə bilərsiniz.*
-
-<div align="center">
-  <img src="https://via.placeholder.com/800x450/ecfdf5/047857?text=Ana+S%C9%99hif%C9%99+G%C3%B6r%C3%BCnt%C3%BCs%C3%BC" alt="Ana Səhifə" width="48%" />
-  <img src="https://via.placeholder.com/800x450/ecfdf5/047857?text=Sosial+Lent+G%C3%B6r%C3%BCnt%C3%BCs%C3%BC" alt="Sosial Lent" width="48%" />
-</div>
 
 ---
 
