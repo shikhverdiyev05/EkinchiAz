@@ -19,10 +19,15 @@ export function Navbar({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+      
+      // Check if we are near the bottom (within 100px)
+      const bottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 100;
+      setIsAtBottom(bottom);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -166,7 +171,7 @@ export function Navbar({
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white">
-                  {cartCount}
+                  {cartCount > 99 ? '99+' : cartCount}
                 </span>
               )}
             </button>
@@ -205,7 +210,7 @@ export function Navbar({
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                  {cartCount}
+                  {cartCount > 99 ? '99+' : cartCount}
                 </span>
               )}
             </button>
@@ -220,7 +225,7 @@ export function Navbar({
 
         </div>
 
-        {/* Mobile Dropdown Menu (Solid Background - No Glass Effect) */}
+        {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-t border-gray-100 shadow-2xl px-4 py-5 space-y-2 animate-slideDown">
             <button
@@ -267,120 +272,99 @@ export function Navbar({
       {/* ─────────────────────────────────────────────────────────────────── */}
       {/* BOTTOM MOBILE NAVBAR                                               */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-[0_-2px_20px_rgba(0,0,0,0.07)]">
-        <div className="flex items-end justify-around max-w-sm mx-auto px-2" style={{ paddingBottom: 'env(safe-area-inset-bottom, 6px)', paddingTop: '6px' }}>
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] transition-transform duration-300 ease-in-out ${isAtBottom ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
+        <div className="flex items-center justify-around max-w-md mx-auto px-1" style={{ paddingBottom: 'env(safe-area-inset-bottom, 4px)', paddingTop: '4px' }}>
 
           {/* 1. Ana Səhifə */}
           <button
             onClick={() => handleNav('home')}
-            className="flex-1 flex flex-col items-center justify-center pb-1 pt-1 gap-0.5 relative"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 relative"
           >
-            <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-              activePage === 'home' ? 'bg-emerald-50' : ''
-            }`}>
-              <Home className={`w-5 h-5 transition-colors ${
-                activePage === 'home' ? 'text-emerald-600' : 'text-gray-400'
-              }`} />
-            </div>
-            <span className={`text-[10px] font-bold transition-colors leading-none ${
+            <Home className={`w-5 h-5 transition-colors ${
+              activePage === 'home' ? 'text-emerald-600' : 'text-gray-400'
+            }`} />
+            <span className={`text-[9px] font-bold transition-colors leading-none ${
               activePage === 'home' ? 'text-emerald-700' : 'text-gray-400'
             }`}>
               Ana Səhifə
             </span>
             {activePage === 'home' && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
             )}
           </button>
 
           {/* 2. Elanlar */}
           <button
             onClick={() => handleNav('listings')}
-            className="flex-1 flex flex-col items-center justify-center pb-1 pt-1 gap-0.5 relative"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 relative"
           >
-            <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-              activePage === 'listings' ? 'bg-emerald-50' : ''
-            }`}>
-              <List className={`w-5 h-5 transition-colors ${
-                activePage === 'listings' ? 'text-emerald-600' : 'text-gray-400'
-              }`} />
-            </div>
-            <span className={`text-[10px] font-bold transition-colors leading-none ${
+            <List className={`w-5 h-5 transition-colors ${
+              activePage === 'listings' ? 'text-emerald-600' : 'text-gray-400'
+            }`} />
+            <span className={`text-[9px] font-bold transition-colors leading-none ${
               activePage === 'listings' ? 'text-emerald-700' : 'text-gray-400'
             }`}>
               Elanlar
             </span>
             {activePage === 'listings' && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
             )}
           </button>
 
           {/* 3. CENTER PLUS BUTTON */}
-          <div className="flex-1 flex justify-center" style={{ marginTop: '-18px' }}>
+          <div className="flex-1 flex justify-center -mt-4">
             <button
               onClick={handleCenterAction}
-              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-gray-900 shadow-lg shadow-amber-400/40 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform ring-4 ring-white"
+              className="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_4px_14px_rgba(16,185,129,0.4)] flex items-center justify-center active:scale-95 transition-transform border-[3px] border-white"
               title={isSocial ? 'Paylaşım Et' : 'Elan Yerləşdir'}
             >
-              <Plus className="w-6 h-6 stroke-[2.5]" />
-              <span className="text-[8.5px] font-black leading-none">
-                {isSocial ? 'Paylaş' : 'Elan'}
-              </span>
+              <Plus className="w-5 h-5 stroke-[3]" />
             </button>
           </div>
 
           {/* 4. Paylaşımlar */}
           <button
             onClick={() => handleNav('social')}
-            className="flex-1 flex flex-col items-center justify-center pb-1 pt-1 gap-0.5 relative"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 relative"
           >
-            <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-              activePage === 'social' ? 'bg-emerald-50' : ''
-            }`}>
-              <MessageSquare className={`w-5 h-5 transition-colors ${
-                activePage === 'social' ? 'text-emerald-600' : 'text-gray-400'
-              }`} />
-            </div>
-            <span className={`text-[10px] font-bold transition-colors leading-none ${
+            <MessageSquare className={`w-5 h-5 transition-colors ${
+              activePage === 'social' ? 'text-emerald-600' : 'text-gray-400'
+            }`} />
+            <span className={`text-[9px] font-bold transition-colors leading-none ${
               activePage === 'social' ? 'text-emerald-700' : 'text-gray-400'
             }`}>
               Paylaşımlar
             </span>
             {activePage === 'social' && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
             )}
           </button>
 
           {/* 5. Profil */}
           <button
             onClick={() => currentUser ? handleNav('profile') : openAuthModal?.()}
-            className="flex-1 flex flex-col items-center justify-center pb-1 pt-1 gap-0.5 relative"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 relative"
           >
             {currentUser?.avatar ? (
-              <div className={`transition-all duration-200 ${
-                activePage === 'profile' ? 'ring-2 ring-emerald-500 ring-offset-1 rounded-full' : ''
-              }`}>
-                <img
-                  src={currentUser.avatar}
-                  alt=""
-                  className="w-6 h-6 rounded-full object-cover"
-                />
-              </div>
+              <img
+                src={currentUser.avatar}
+                alt=""
+                className={`w-6 h-6 rounded-full object-cover ${
+                  activePage === 'profile' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
+                }`}
+              />
             ) : (
-              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-                activePage === 'profile' ? 'bg-emerald-50' : ''
-              }`}>
-                <User className={`w-5 h-5 transition-colors ${
-                  activePage === 'profile' ? 'text-emerald-600' : 'text-gray-400'
-                }`} />
-              </div>
+              <User className={`w-5 h-5 transition-colors ${
+                activePage === 'profile' ? 'text-emerald-600' : 'text-gray-400'
+              }`} />
             )}
-            <span className={`text-[10px] font-bold transition-colors leading-none ${
+            <span className={`text-[9px] font-bold transition-colors leading-none ${
               activePage === 'profile' ? 'text-emerald-700' : 'text-gray-400'
             }`}>
               Profil
             </span>
             {activePage === 'profile' && (
-              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-emerald-600 rounded-full" />
             )}
           </button>
 

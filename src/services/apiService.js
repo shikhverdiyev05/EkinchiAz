@@ -689,10 +689,14 @@ export function normalizePost(raw) {
     tags:          Array.isArray(raw.tags)
       ? raw.tags.map(t => String(t).replace(/^#/, '').trim()).filter(Boolean).slice(0, 10)
       : [],
-    images:        Array.isArray(raw.images) ? raw.images.filter(img => typeof img === 'string' && img) : [],
+    images:        Array.isArray(raw.images)
+      ? raw.images.filter(img => typeof img === 'string' && img.length > 0)
+      : [],
     likesCount:    Math.max(0, Number(raw.likesCount) || 0),
     commentsCount: Math.max(0, Number(raw.commentsCount) || 0),
     savesCount:    Math.max(0, Number(raw.savesCount) || 0),
+    shareCount:    Math.max(0, Number(raw.shareCount) || 0),
+    createdAt:     raw.createdAt || null,
     createdAtMs:   toMillis(raw.createdAt) || Date.now(),
   };
 }
@@ -882,14 +886,35 @@ export async function deletePostApi(postId) {
 export async function updatePostApi(postId, updateData) {
   if (!postId) throw new Error('Post ID tələb olunur');
 
-  const payload = {
-    description: String(updateData.description || '').trim().slice(0, 3000),
-    tags: (Array.isArray(updateData.tags) ? updateData.tags : [])
-      .map(t => String(t).replace(/^#/, '').trim()).filter(Boolean).slice(0, 10),
-    images: (Array.isArray(updateData.images) ? updateData.images : [])
-      .filter(img => typeof img === 'string' && /^https?:\/\//i.test(img)).slice(0, 5),
-    updatedAt: serverTimestamp(),
-  };
+  const payload = { updatedAt: serverTimestamp() };
+
+  // Yalnız ötürülən sahələri yenilə — boş dəyərlər mövcud məlumatları silməsin
+  if ('description' in updateData) {
+    payload.description = String(updateData.description || '').trim().slice(0, 3000);
+  }
+  if ('tags' in updateData) {
+    payload.tags = (Array.isArray(updateData.tags) ? updateData.tags : [])
+      .map(t => String(t).replace(/^#/, '').trim()).filter(Boolean).slice(0, 10);
+  }
+  if ('images' in updateData) {
+    payload.images = (Array.isArray(updateData.images) ? updateData.images : [])
+      .filter(img => typeof img === 'string' && /^https?:\/\//i.test(img)).slice(0, 5);
+  }
+  if ('shareCount' in updateData) {
+    payload.shareCount = Math.max(0, Number(updateData.shareCount) || 0);
+  }
+  if ('savesCount' in updateData) {
+    payload.savesCount = Math.max(0, Number(updateData.savesCount) || 0);
+  }
+  if ('likesCount' in updateData) {
+    payload.likesCount = Math.max(0, Number(updateData.likesCount) || 0);
+  }
+  if ('commentsCount' in updateData) {
+    payload.commentsCount = Math.max(0, Number(updateData.commentsCount) || 0);
+  }
+  if ('authorName' in updateData)  payload.authorName  = updateData.authorName;
+  if ('authorPhoto' in updateData) payload.authorPhoto = updateData.authorPhoto;
+  if ('userId' in updateData)      payload.userId      = updateData.userId;
 
   await updateDoc(doc(db, COL.POSTS, postId), payload);
   invalidateSocialCache('posts');

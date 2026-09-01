@@ -97,7 +97,7 @@ export default function CartDrawer({
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center border border-emerald-200 rounded-lg bg-white overflow-hidden shadow-xs">
                       <button
-                        onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                        onClick={() => onUpdateQuantity(item.id, -1)}
                         className="px-2.5 py-0.5 text-xs text-gray-600 hover:bg-emerald-50 font-bold"
                       >
                         -
@@ -106,7 +106,7 @@ export default function CartDrawer({
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => onUpdateQuantity(item.id, 1)}
                         className="px-2.5 py-0.5 text-xs text-gray-600 hover:bg-emerald-50 font-bold"
                       >
                         +

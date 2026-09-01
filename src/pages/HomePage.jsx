@@ -62,7 +62,7 @@ export default function HomePage({
   };
 
   return (
-    <div className="space-y-12 sm:space-y-16 pb-24 lg:pb-16 animate-fadeIn">
+    <div className="space-y-12 sm:space-y-16 pb-24 lg:pb-16 animate-fadeIn overflow-x-hidden w-full">
       
       {/* Hero Section */}
       <HeroSection 
@@ -217,7 +217,7 @@ export default function HomePage({
 
         {/* Featured Sale Items */}
         <section>
-          <div className="flex items-center justify-between mb-4 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-8">
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
@@ -231,12 +231,10 @@ export default function HomePage({
             </div>
             <button
               onClick={() => onNavigateListings({ type: 'sale' })}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1"
+              className="mt-2 sm:mt-0 px-4 py-2 rounded-2xl bg-emerald-50/50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition flex items-center gap-1.5 self-start sm:self-auto"
             >
               <span>Bütün satış elanları</span>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
+              <span>→</span>
             </button>
           </div>
 

@@ -255,7 +255,7 @@ export default function ProductDetailPage({
                   {(Number(product.price) || 0).toLocaleString()}
                 </span>
                 <span className="text-sm sm:text-base font-bold text-emerald-700">
-                  {product.unit || 'AZN'}
+                  {isSale ? 'AZN' : (product.unit || 'AZN/gün')}
                 </span>
               </div>
             </div>

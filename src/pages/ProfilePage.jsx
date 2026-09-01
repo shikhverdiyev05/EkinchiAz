@@ -11,7 +11,7 @@ import ProductCard from "../components/ProductCard";
 import { PostCard } from "../components/PostCard";
 import { PostModal } from "../components/PostModal";
 
-import { updateUserProfileApi, deleteProductApi, deleteBookingApi, getUserPostsApi, checkUserLikesSavesApi } from "../services/apiService";
+import { updateUserProfileApi, deleteProductApi, deleteBookingApi, getUserPostsApi, checkUserLikesSavesApi, getSavedPostsApi, getFollowersApi, getFollowingApi, getUserSocialCountsApi } from "../services/apiService";
 import { uploadImageToImgBB } from "../services/imageService";
 
 const REGIONS = ["Baki","Abseron","Sumqayit","Gence","Quba","Qusar","Xacmaz","Sabran","Qebele","Seki","Zaqatala","Balaken","Qax","Berde","Terter","Agdam","Agcabedi","Yevlax","Kirdamir","Ucar","Goycay","Ismayilli","Samahi","Semkir","Tovuz","Qazax","Agstafa","Goranboy","Saatli","Sabirabad","Imisli","Bilasuvar","Celilabad","Masalli","Lenkaran","Astara","Lerik","Salyan","Neftcala","Naxcivan MR"];
@@ -78,13 +78,31 @@ export default function ProfilePage({
 
   const [userPosts, setUserPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [loadingSavedPosts, setLoadingSavedPosts] = useState(false);
+  const [followersList, setFollowersList] = useState([]);
+  const [followingList, setFollowingList] = useState([]);
+  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [userLikes, setUserLikes] = useState([]);
   const [userSaves, setUserSaves] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [socialCounts, setSocialCounts] = useState({ postsCount: 0, followersCount: 0, followingCount: 0 });
+
+  // Fetch real follower/following counts from Firestore
+  useEffect(() => {
+    if (!user?.id) return;
+    getUserSocialCountsApi(user.id).then(setSocialCounts).catch(() => {});
+    checkUserLikesSavesApi(user.id).then(stats => {
+      setUserLikes(stats.likedPostIds || []);
+      setUserSaves(stats.savedPostIds || []);
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const activeListings = userListings.filter(p => p.inStock !== false).length;
-  const followersCount = user?.followers || 0;
-  const followingCount = user?.following || 0;
+  const followersCount = socialCounts.followersCount;
+  const followingCount = socialCounts.followingCount;
   const isImgAvatar = user?.avatar && user.avatar.startsWith("http");
 
   const loadUserPosts = async () => {
@@ -103,11 +121,62 @@ export default function ProfilePage({
     }
   };
 
-  // Load posts when user changes or posts tab is activated
+  const loadSavedPosts = async () => {
+    if (!user?.id) return;
+    setLoadingSavedPosts(true);
+    try {
+      const posts = await getSavedPostsApi(user.id, { force: true });
+      setSavedPosts(posts);
+      const stats = await checkUserLikesSavesApi(user.id);
+      setUserLikes(stats.likedPostIds);
+      setUserSaves(stats.savedPostIds);
+    } catch (err) {
+      console.error('Load saved posts error:', err);
+    } finally {
+      setLoadingSavedPosts(false);
+    }
+  };
+
+  const loadFollowers = async () => {
+    if (!user?.id) return;
+    setLoadingFollowers(true);
+    try {
+      const users = await getFollowersApi(user.id);
+      setFollowersList(users);
+    } catch (err) {
+      console.error('Load followers error:', err);
+    } finally {
+      setLoadingFollowers(false);
+    }
+  };
+
+  const loadFollowing = async () => {
+    if (!user?.id) return;
+    setLoadingFollowing(true);
+    try {
+      const users = await getFollowingApi(user.id);
+      setFollowingList(users);
+    } catch (err) {
+      console.error('Load following error:', err);
+    } finally {
+      setLoadingFollowing(false);
+    }
+  };
+
+  // Load data when user changes or tab is activated
   useEffect(() => {
     if (activeTab === 'posts' && user?.id) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       loadUserPosts();
+    } else if (activeTab === 'saved' && user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadSavedPosts();
+    } else if (activeTab === 'followers' && user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadFollowers();
+    } else if (activeTab === 'following' && user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadFollowing();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user?.id]);
@@ -195,15 +264,15 @@ export default function ProfilePage({
         </div>
   <div className="grid grid-cols-4 gap-1 mt-4">
             {[
-              { label: "Elan", value: activeListings },
-              { label: "Paylaşım", value: userPosts.length },
-              { label: "İzləyici", value: followersCount },
-              { label: "İzlənilən", value: followingCount },
+              { label: "Elan", value: activeListings, tab: "listings" },
+              { label: "Paylaşım", value: userPosts.length, tab: "posts" },
+              { label: "İzləyici", value: followersCount, tab: "followers" },
+              { label: "İzlənilən", value: followingCount, tab: "following" },
             ].map(s => (
-              <div key={s.label} className="text-center bg-emerald-50/80 rounded-xl py-2 px-1">
+              <button key={s.label} onClick={() => { setActiveTab(s.tab); setSidebarOpen(false); }} className="text-center bg-emerald-50/80 hover:bg-emerald-100 rounded-xl py-2 px-1 transition-colors">
                 <p className="font-black text-gray-900 text-sm leading-none">{s.value}</p>
                 <p className="text-[9px] text-gray-500 font-semibold mt-0.5 leading-tight">{s.label}</p>
-              </div>
+              </button>
             ))}
           </div>
       </div>
@@ -216,9 +285,13 @@ export default function ProfilePage({
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold transition-all ${isActive ? "bg-emerald-600 text-white shadow-sm" : "text-gray-600 hover:bg-emerald-50 hover:text-emerald-800"}`}>
               <Icon className="w-4 h-4 shrink-0" />
               <span className="flex-1">{item.label}</span>
-              {item.id === "listings" && userListings.length > 0 && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-emerald-100 text-emerald-700"}`}>{userListings.length}</span>}
-              {item.id === "favorites" && favoriteProducts.length > 0 && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-rose-100 text-rose-600"}`}>{favoriteProducts.length}</span>}
-              {item.id === "rentals" && rentalBookings.length > 0 && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-blue-100 text-blue-700"}`}>{rentalBookings.length}</span>}
+              {item.id === "listings" && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-emerald-100 text-emerald-700"}`}>{userListings.length}</span>}
+              {item.id === "posts" && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-emerald-100 text-emerald-700"}`}>{socialCounts.postsCount || 0}</span>}
+              {item.id === "saved" && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-blue-100 text-blue-700"}`}>{userSaves.length}</span>}
+              {item.id === "favorites" && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-rose-100 text-rose-600"}`}>{favoriteProducts.length}</span>}
+              {item.id === "rentals" && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-cyan-100 text-cyan-700"}`}>{rentalBookings.length}</span>}
+              {item.id === "followers" && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-gray-100 text-gray-700"}`}>{socialCounts.followersCount || 0}</span>}
+              {item.id === "following" && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/20" : "bg-gray-100 text-gray-700"}`}>{socialCounts.followingCount || 0}</span>}
             </button>
           );
         })}
@@ -333,7 +406,10 @@ export default function ProfilePage({
                   post={post}
                   isLiked={userLikes.includes(post.id)}
                   isSaved={userSaves.includes(post.id)}
-                  onOpenModal={setSelectedPost}
+                  onOpenModal={(p) => {
+                    setSelectedPost(p);
+                    window.history.pushState(null, '', `/post/${p.id}`);
+                  }}
                   onEdit={(postToEdit) => onNavigateCreatePost?.(postToEdit)}
                   onDelete={id => setUserPosts(prev => prev.filter(p => p.id !== id))}
                   onNavigateUser={onNavigateUser}
@@ -346,7 +422,10 @@ export default function ProfilePage({
 
           <PostModal 
             isOpen={!!selectedPost} 
-            onClose={() => setSelectedPost(null)} 
+            onClose={() => {
+              setSelectedPost(null);
+              window.history.pushState(null, '', '/profil');
+            }} 
             post={selectedPost}
             isLiked={selectedPost ? userLikes.includes(selectedPost.id) : false}
             isSaved={selectedPost ? userSaves.includes(selectedPost.id) : false}
@@ -356,7 +435,54 @@ export default function ProfilePage({
           />
         </div>
       );
-      case "saved": return <div><h2 className="text-lg font-black text-gray-900 mb-4">Yadda Saxlananlar</h2><EmptyState icon={<Bookmark className="w-6 h-6 text-emerald-600" />} title="Heç bir şey yadda saxlanılmayıb." sub="Yadda saxlama funksiyası tezliklə əlavə olunacaq." /></div>;
+      case "saved": return (
+        <div>
+          <h2 className="text-lg font-black text-gray-900 mb-4">Yadda Saxlananlar <span className="text-base text-gray-400 font-bold">({savedPosts.length})</span></h2>
+          
+          {loadingSavedPosts ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-4" />
+              <p className="text-sm font-bold text-gray-500">Yüklənir...</p>
+            </div>
+          ) : savedPosts.length === 0 ? (
+            <EmptyState icon={<Bookmark className="w-6 h-6 text-emerald-600" />} title="Heç bir şey yadda saxlanılmayıb." sub="Paylaşımların üzərindəki yadda saxlama ikonuna klikləyərək əlavə edin." />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedPosts.map(post => (
+                <PostCard 
+                  key={post.id} 
+                  post={post}
+                  isLiked={userLikes.includes(post.id)}
+                  isSaved={userSaves.includes(post.id)}
+                  onOpenModal={(p) => {
+                    setSelectedPost(p);
+                    window.history.pushState(null, '', `/post/${p.id}`);
+                  }}
+                  onEdit={(postToEdit) => onNavigateCreatePost?.(postToEdit)}
+                  onDelete={id => setSavedPosts(prev => prev.filter(p => p.id !== id))}
+                  onNavigateUser={onNavigateUser}
+                  currentUser={currentUser}
+                  onShowToast={onShowToast}
+                />
+              ))}
+            </div>
+          )}
+
+          <PostModal 
+            isOpen={!!selectedPost} 
+            onClose={() => {
+              setSelectedPost(null);
+              window.history.pushState(null, '', '/profil');
+            }} 
+            post={selectedPost}
+            isLiked={selectedPost ? userLikes.includes(selectedPost.id) : false}
+            isSaved={selectedPost ? userSaves.includes(selectedPost.id) : false}
+            onNavigateUser={onNavigateUser}
+            currentUser={currentUser}
+            onShowToast={onShowToast}
+          />
+        </div>
+      );
       case "favorites": return (
         <div>
           <h2 className="text-lg font-black text-gray-900 mb-4">Sevimlilər <span className="text-base text-gray-400 font-bold">({favoriteProducts.length})</span></h2>
@@ -436,8 +562,56 @@ export default function ProfilePage({
         </div>
       );
       case "comments": return <div><h2 className="text-lg font-black text-gray-900 mb-4">Şərhlər</h2><EmptyState icon={<MessageCircle className="w-6 h-6 text-emerald-600" />} title="Heç bir şərh tapılmadı." sub="Şərh funksiyası tezliklə əlavə olunacaq." /></div>;
-      case "followers": return <div><h2 className="text-lg font-black text-gray-900 mb-4">İzləyicilər ({followersCount})</h2><EmptyState icon={<Users className="w-6 h-6 text-emerald-600" />} title="Hələ heç bir izləyici yoxdur." sub="İzləyici funksiyası tezliklə əlavə olunacaq." /></div>;
-      case "following": return <div><h2 className="text-lg font-black text-gray-900 mb-4">İzlədiklərim ({followingCount})</h2><EmptyState icon={<UserCheck className="w-6 h-6 text-emerald-600" />} title="Hələ heç kim izlənilmir." sub="İzləmə funksiyası tezliklə əlavə olunacaq." /></div>;
+      case "followers": return (
+        <div>
+          <h2 className="text-lg font-black text-gray-900 mb-4">İzləyicilər ({followersCount})</h2>
+          {loadingFollowers ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-4" />
+              <p className="text-sm font-bold text-gray-500">Yüklənir...</p>
+            </div>
+          ) : followersList.length === 0 ? (
+            <EmptyState icon={<Users className="w-6 h-6 text-emerald-600" />} title="Hələ heç bir izləyici yoxdur." sub="Elan paylaşıb digər istifadəçilərin sizi izləməsini təmin edə bilərsiniz." />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {followersList.map(follower => (
+                <div key={follower.id} onClick={() => onNavigateUser?.(follower.id)} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-emerald-100 hover:shadow-md transition cursor-pointer">
+                  <img src={follower.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(follower.name || 'User')}&background=10b981&color=fff`} alt={follower.name} className="w-12 h-12 rounded-full object-cover" />
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm">{follower.name || 'İstifadəçi'}</h3>
+                    <p className="text-[11px] text-gray-500">{follower.role === 'agronomist' ? 'Aqronom' : 'Fermer'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+      case "following": return (
+        <div>
+          <h2 className="text-lg font-black text-gray-900 mb-4">İzlədiklərim ({followingCount})</h2>
+          {loadingFollowing ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-4" />
+              <p className="text-sm font-bold text-gray-500">Yüklənir...</p>
+            </div>
+          ) : followingList.length === 0 ? (
+            <EmptyState icon={<UserCheck className="w-6 h-6 text-emerald-600" />} title="Hələ heç kim izlənilmir." sub="Bəyəndiyiniz profilləri izləyərək yeniliklərdən xəbərdar olun." />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {followingList.map(followed => (
+                <div key={followed.id} onClick={() => onNavigateUser?.(followed.id)} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-emerald-100 hover:shadow-md transition cursor-pointer">
+                  <img src={followed.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(followed.name || 'User')}&background=10b981&color=fff`} alt={followed.name} className="w-12 h-12 rounded-full object-cover" />
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm">{followed.name || 'İstifadəçi'}</h3>
+                    <p className="text-[11px] text-gray-500">{followed.role === 'agronomist' ? 'Aqronom' : 'Fermer'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
       case "settings": return (
         <div className="space-y-5">
           <h2 className="text-lg font-black text-gray-900">Parametrlər — Profili Redaktə Et</h2>
@@ -523,9 +697,6 @@ export default function ProfilePage({
             <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-2 text-xs font-bold text-emerald-700">
               <span className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center text-sm">☰</span>
               {NAV_ITEMS.find(n => n.id === activeTab)?.label || "Profil"}
-            </button>
-            <button onClick={onAddNewListing} className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold flex items-center gap-1">
-              <Plus className="w-3 h-3" /> Elan
             </button>
           </div>
           {renderContent()}

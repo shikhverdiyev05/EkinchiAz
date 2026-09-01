@@ -154,7 +154,7 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onNavigateCreatePo
           
           {/* Quick Create Post Bar */}
           <div
-            onClick={() => onEditPost?.(null)}
+            onClick={() => onNavigateCreatePost?.(null)}
             className="bg-white p-4 sm:p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-3 cursor-pointer hover:border-emerald-300 transition group"
           >
             <img
@@ -231,7 +231,10 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onNavigateCreatePo
                   post={post}
                   isLiked={userLikes.includes(post.id)}
                   isSaved={userSaves.includes(post.id)}
-                  onOpenModal={setSelectedPost}
+                  onOpenModal={(p) => {
+                    setSelectedPost(p);
+                    window.history.pushState(null, '', `/post/${p.id}`);
+                  }}
                   onEdit={p => onNavigateCreatePost?.(p)}
                   onDelete={id => setPosts(prev => prev.filter(p => p.id !== id))}
                   onNavigateUser={onNavigateUser}
@@ -294,7 +297,10 @@ export function SocialFeedPage({ onNavigateUser, currentUser, onNavigateCreatePo
       {/* Post Detail Modal */}
       <PostModal
         isOpen={!!selectedPost}
-        onClose={() => setSelectedPost(null)}
+        onClose={() => {
+          setSelectedPost(null);
+          window.history.pushState(null, '', '/sosial');
+        }}
         post={selectedPost}
         isLiked={selectedPost ? userLikes.includes(selectedPost.id) : false}
         isSaved={selectedPost ? userSaves.includes(selectedPost.id) : false}

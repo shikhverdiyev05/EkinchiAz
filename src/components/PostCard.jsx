@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
 import {
   Heart, MessageCircle, Share2, Bookmark, MoreVertical,
   ChevronLeft, ChevronRight, Edit2, Trash2, MapPin, Tag
 } from 'lucide-react';
-import { toggleLikeApi, toggleSaveApi, deletePostApi } from '../services/apiService';
+import { toggleLikeApi, toggleSaveApi, deletePostApi, updatePostApi } from '../services/apiService';
 
 export function PostCard({
   post,
@@ -21,6 +22,8 @@ export function PostCard({
   const [isLiked, setIsLiked] = useState(initLiked);
   const [isSaved, setIsSaved] = useState(initSaved);
   const [likesCount, setLikesCount] = useState(post?.likesCount || 0);
+  const [savesCount, setSavesCount] = useState(post?.savesCount || 0);
+  const [shareCount, setShareCount] = useState(post?.shareCount || 0);
   const [showMenu, setShowMenu] = useState(false);
 
   React.useEffect(() => {
@@ -52,23 +55,28 @@ export function PostCard({
 
   const handleSave = async (e) => {
     e.stopPropagation();
-    if (!currentUser) {
+    if (!currentUser?.id) {
       onShowToast?.('Yadda saxlamaq üçün daxil olun');
       return;
     }
     const next = !isSaved;
     setIsSaved(next);
+    setSavesCount(prev => next ? prev + 1 : Math.max(0, prev - 1));
     await toggleSaveApi(post.id, currentUser.id, next);
     onShowToast?.(next ? 'Yadda saxlanılanlara əlavə edildi' : 'Yadda saxlanılanlardan çıxarıldı');
   };
 
-  const handleShare = (e) => {
+  const handleShare = async (e) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/?post=${post.id}`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(url);
+    const url = `${window.location.origin}/post/${post.id}`;
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      }
       onShowToast?.('Paylaşım linki kopyalandı!');
-    } else {
+      setShareCount(p => p + 1);
+      await updatePostApi(post.id, { shareCount: (post.shareCount || 0) + 1 }).catch(() => {});
+    } catch {
       onShowToast?.(url);
     }
   };
@@ -252,18 +260,20 @@ export function PostCard({
             title="Linki kopyala"
           >
             <Share2 className="w-5 h-5" />
+            <span>{shareCount}</span>
           </button>
         </div>
 
         {/* Save */}
         <button
           onClick={handleSave}
-          className={`p-1.5 rounded-xl transition ${
-            isSaved ? 'text-emerald-700 bg-emerald-50' : 'text-gray-400 hover:text-gray-700'
+          className={`flex items-center gap-1.5 p-1.5 px-2 rounded-xl transition ${
+            isSaved ? 'text-emerald-700 bg-emerald-50' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
           }`}
           title="Yadda saxla"
         >
           <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+          <span className="text-xs font-black">{savesCount}</span>
         </button>
       </div>
 

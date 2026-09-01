@@ -90,7 +90,7 @@ export default function ProductCard({
 
         {/* Content */}
         <div className="p-4 sm:p-5">
-          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block mb-1">
+          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block mb-1 line-clamp-1">
             {product.category} {product.subcategory ? `• ${product.subcategory}` : ''}
           </span>
           <h3 className="font-bold text-gray-900 text-sm sm:text-base group-hover:text-emerald-700 transition line-clamp-2 leading-snug">
@@ -108,7 +108,7 @@ export default function ProductCard({
           <div>
             <span className="text-[9px] text-gray-400 font-bold uppercase block">{isRent ? 'İcarə haqqı' : 'Qiymət'}</span>
             <span className="text-base sm:text-lg font-black text-emerald-950">
-              {(Number(product.price) || 0).toLocaleString()} <span className="text-xs font-bold text-emerald-700">{product.unit || 'AZN'}</span>
+              {(Number(product.price) || 0).toLocaleString()} <span className="text-xs font-bold text-emerald-700">{isSale ? 'AZN' : (product.unit || 'AZN/gün')}</span>
             </span>
           </div>
 

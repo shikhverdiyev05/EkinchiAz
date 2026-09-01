@@ -279,7 +279,10 @@ export function PublicProfilePage({
                 post={post}
                 isLiked={userLikes.includes(post.id)}
                 isSaved={userSaves.includes(post.id)}
-                onOpenModal={setSelectedPost}
+                onOpenModal={(p) => {
+                  setSelectedPost(p);
+                  window.history.pushState(null, '', `/post/${p.id}`);
+                }}
                 onEdit={p => onNavigateCreatePost?.(p)}
                 onDelete={id => setPosts(prev => prev.filter(p => p.id !== id))}
                 onNavigateUser={onNavigateUser}
@@ -296,7 +299,7 @@ export function PublicProfilePage({
         products.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 p-8 shadow-xs">
             <PackageSearch className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-            <h3 className="text-sm font-bold text-gray-700">Aktiv elan tapılmadı</h3>
+            <h3 className="text-sm font-bold text-gray-700">Elan tapılmadı</h3>
             <p className="text-xs text-gray-400 mt-1">Bu fermer və ya şirkət tərəfindən satışa çıxarılmış məhsul yoxdur.</p>
           </div>
         ) : (
@@ -318,7 +321,10 @@ export function PublicProfilePage({
       {/* Post Modal */}
       <PostModal
         isOpen={!!selectedPost}
-        onClose={() => setSelectedPost(null)}
+        onClose={() => {
+          setSelectedPost(null);
+          window.history.pushState(null, '', `/istifadeci/${userId}`);
+        }}
         post={selectedPost}
         isLiked={selectedPost ? userLikes.includes(selectedPost.id) : false}
         isSaved={selectedPost ? userSaves.includes(selectedPost.id) : false}

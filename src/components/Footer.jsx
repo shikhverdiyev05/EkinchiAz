@@ -31,10 +31,22 @@ const LiIcon = () => (
 export default function Footer({ onNavigate, onSelectCategory }) {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubscribe = (e) => {
     e.preventDefault();
-    if (!newsletterEmail.trim()) return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!newsletterEmail.trim()) {
+      setError('E-poçt ünvanı mütləq daxil edilməlidir');
+      return;
+    }
+    if (!emailRegex.test(newsletterEmail.trim())) {
+      setError('Düzgün e-poçt daxil edin (məs: ad@fermer.az)');
+      return;
+    }
+
+    setError('');
     setSubscribed(true);
     setTimeout(() => {
       setNewsletterEmail('');
@@ -189,13 +201,16 @@ export default function Footer({ onNavigate, onSelectCategory }) {
             ) : (
               <form onSubmit={handleSubscribe} className="space-y-2">
                 <input 
-                  type="email" 
-                  required
+                  type="text" 
                   value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  onChange={(e) => {
+                    setNewsletterEmail(e.target.value);
+                    if (error) setError('');
+                  }}
                   placeholder="adiniz@email.az"
-                  className="w-full px-3.5 py-2.5 text-xs rounded-2xl bg-emerald-950/80 border border-emerald-800 text-white placeholder-emerald-500/70 outline-none focus:border-emerald-400 transition"
+                  className={`w-full px-3.5 py-2.5 text-xs rounded-2xl bg-emerald-950/80 border ${error ? 'border-red-500' : 'border-emerald-800'} text-white placeholder-emerald-500/70 outline-none focus:border-emerald-400 transition`}
                 />
+                {error && <p className="text-[10px] text-red-400 pl-1">{error}</p>}
                 <button
                   type="submit"
                   className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-emerald-950 font-black text-xs rounded-2xl shadow-md transition active:scale-95"
@@ -254,7 +269,7 @@ export default function Footer({ onNavigate, onSelectCategory }) {
         </div>
 
         {/* Alt Müəlliflik Hüququ və Şərtlər */}
-        <div className="mt-8 pt-6 border-t border-emerald-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-400/80">
+        <div className="mt-8 pt-6 border-t border-emerald-900/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-400/80 relative pb-4">
           <p className="text-center sm:text-left">
             © 2026 <strong>Ekinchi.Az</strong>. Bütün hüquqlar qorunur. Azərbaycanın aqrar inkişafı üçün hazırlandı.
           </p>
@@ -266,6 +281,17 @@ export default function Footer({ onNavigate, onSelectCategory }) {
             <button onClick={() => alert('Məxfilik Siyasəti səhifəsi hazırlanır.')} className="hover:text-white transition">Məxfilik Siyasəti</button>
             <button onClick={() => alert('İstifadə Şərtləri səhifəsi hazırlanır.')} className="hover:text-white transition">İstifadə Şərtləri</button>
           </div>
+        </div>
+
+        {/* Yuxarı Qayıt Button (Mobile specific) */}
+        <div className="flex justify-center pb-8 pt-2">
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="px-6 py-2.5 bg-emerald-800/40 hover:bg-emerald-700/60 rounded-full font-bold text-white transition-colors flex items-center gap-2 border border-emerald-700/30 shadow-lg"
+          >
+            Yuxarı Qayıt 
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7"></path></svg>
+          </button>
         </div>
 
       </div>

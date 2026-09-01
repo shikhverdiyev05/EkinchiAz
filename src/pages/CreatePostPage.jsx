@@ -1,18 +1,26 @@
 import { useState, useRef, useCallback } from "react";
 import {
   ArrowLeft, Image as ImageIcon, X, Tag, Loader2,
-  Sparkles, Upload, Send, Hash, AlertCircle, CheckCircle2
+  Sparkles, Upload, Send, Hash, AlertCircle, CheckCircle2,
+  Wheat, Tractor, FlaskConical, Droplets, Home, MessageCircle,
+  Beef, Sprout, Settings2, Cloud, ShoppingBasket, Grape
 } from "lucide-react";
 import { createPostApi, updatePostApi } from "../services/apiService";
 import { uploadImageToImgBB, compressImage } from "../services/imageService";
 
 const TAGS_PRESET = [
-  { label: "taxıl", emoji: "🌾" }, { label: "traktor", emoji: "🚜" },
-  { label: "gübrə", emoji: "🧪" }, { label: "suvarma", emoji: "💧" },
-  { label: "istixana", emoji: "🏡" }, { label: "məsləhət", emoji: "💬" },
-  { label: "heyvandarlıq", emoji: "🐄" }, { label: "toxum", emoji: "🌱" },
-  { label: "texnika", emoji: "⚙️" }, { label: "aqroiqlim", emoji: "🌤️" },
-  { label: "bazar", emoji: "🏪" }, { label: "üzüm", emoji: "🍇" },
+  { label: "taxıl",        Icon: Wheat },
+  { label: "traktor",      Icon: Tractor },
+  { label: "gübrə",        Icon: FlaskConical },
+  { label: "suvarma",      Icon: Droplets },
+  { label: "istixana",     Icon: Home },
+  { label: "məsləhət",     Icon: MessageCircle },
+  { label: "heyvandarlıq", Icon: Beef },
+  { label: "toxum",        Icon: Sprout },
+  { label: "texnika",      Icon: Settings2 },
+  { label: "aqroiqlim",    Icon: Cloud },
+  { label: "bazar",        Icon: ShoppingBasket },
+  { label: "üzüm",         Icon: Grape },
 ];
 
 export default function CreatePostPage({
@@ -75,10 +83,16 @@ export default function CreatePostPage({
       try {
         const optimized = await compressImage(file, { maxSize: 1800, quality: 0.85 });
         const url = await uploadImageToImgBB(optimized);
-        if (url) urls.push(url);
+        if (url) {
+          urls.push(url);
+          console.log('ImgBB upload uğurlu:', url);
+        } else {
+          console.warn('ImgBB upload: URL qaytarılmadı');
+        }
         setUploadProgress((p) => ({ ...p, done: p.done + 1 }));
-      } catch {
-        toast(`"${file.name}" yüklənərkən xəta baş verdi`);
+      } catch (err) {
+        console.error(`"${file.name}" upload xətası:`, err);
+        toast(`"${file.name}" yüklənərkən xəta: ${err?.message || 'Naməlum xəta'}`);
       }
     }
 
@@ -405,16 +419,19 @@ export default function CreatePostPage({
             <div>
               <p className="text-[11px] font-bold text-gray-400 mb-2">Populyar taqlar:</p>
               <div className="flex flex-wrap gap-1.5">
-                {TAGS_PRESET.filter((t) => !tags.includes(t.label)).map((t) => (
-                  <button
-                    key={t.label}
-                    type="button"
-                    onClick={() => addTag(t.label)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-600 hover:text-emerald-800 bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-200 px-2.5 py-1 rounded-lg transition"
-                  >
-                    <span>{t.emoji}</span> {t.label}
-                  </button>
-                ))}
+                {TAGS_PRESET.filter((t) => !tags.includes(t.label)).map((t) => {
+                  const Icon = t.Icon;
+                  return (
+                    <button
+                      key={t.label}
+                      type="button"
+                      onClick={() => addTag(t.label)}
+                      className="inline-flex items-center gap-1.5 text-[11px] font-bold text-gray-600 hover:text-emerald-800 bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-200 px-2.5 py-1 rounded-lg transition"
+                    >
+                      <Icon className="w-3.5 h-3.5 text-emerald-600" /> {t.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

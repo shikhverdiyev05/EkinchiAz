@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useMemo, useEffect } from 'react';
 
 export default function RentalBookingModal({ isOpen, product, existingBooking, onClose, onSubmitBooking }) {
@@ -8,6 +9,9 @@ export default function RentalBookingModal({ isOpen, product, existingBooking, o
   const [durationUnit, setDurationUnit] = useState(existingBooking?.durationUnit || 'gün'); // 'gün' | 'həftə' | 'ay' | 'il'
   const [locationNote, setLocationNote] = useState(existingBooking?.locationNote || '');
   const [notes, setNotes] = useState(existingBooking?.notes || '');
+  const [phoneError, setPhoneError] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [countError, setCountError] = useState('');
   
   useEffect(() => {
     if (isOpen) {
@@ -23,10 +27,6 @@ export default function RentalBookingModal({ isOpen, product, existingBooking, o
       setCountError('');
     }
   }, [isOpen, existingBooking]);
-
-  const [phoneError, setPhoneError] = useState('');
-  const [nameError, setNameError] = useState('');
-  const [countError, setCountError] = useState('');
 
   // Təxmini yekun icarə məbləğinin hesablanması
   const estimatedCost = useMemo(() => {

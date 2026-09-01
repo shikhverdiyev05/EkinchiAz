@@ -72,6 +72,17 @@ export default function App() {
       const urlParams = new URLSearchParams(window.location.search);
       const postId = urlParams.get('post');
 
+      if (path.startsWith('/post/')) {
+        const pId = path.replace('/post/', '');
+        if (pId) {
+          dispatch({ type: A.SET_PAGE, page: 'social' });
+          getPostByIdApi(pId).then(p => {
+            if (p) setDeepLinkPost(p);
+          });
+          return;
+        }
+      }
+
       if (postId) {
         dispatch({ type: A.SET_PAGE, page: 'social' });
         getPostByIdApi(postId).then(p => {
@@ -392,9 +403,6 @@ export default function App() {
           onShowToast={(msg) => { dispatch({ type: A.SHOW_TOAST, message: msg }); setTimeout(() => dispatch({ type: A.CLEAR_TOAST }), 3000); }}
         />
       )}
-
-
-
     </div>
   );
 }

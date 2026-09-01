@@ -171,27 +171,28 @@ export default function ListingsPage({
             </div>
 
             {/* Sub-bar: Count & Sort */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-emerald-50 text-xs">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-emerald-50 text-xs">
+              <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-4">
                 <span className="font-bold text-gray-900">
                   Tapılan Elanlar: <span className="text-emerald-700 font-black">{filteredProducts.length}</span>
                 </span>
                 {activeFilterCount > 0 && (
                   <button
                     onClick={handleResetFilters}
-                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 underline"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors font-bold text-[11px]"
                   >
-                    Filtrləri təmizlə ({activeFilterCount})
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    Filtrləri təmizlə
                   </button>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2">
                 <span className="text-gray-500 font-medium text-[11px]">Sırala:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500 cursor-pointer"
+                  className="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-100 text-xs font-bold text-gray-800 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-pointer transition-all"
                 >
                   <option value="newest">Ən Yenilər</option>
                   <option value="price-asc">Ucuzdan Bahaya</option>
