@@ -93,8 +93,6 @@ Layihənin əsas qovluğunda `.env` faylı yaradın və Firebase məlumatların�
 VITE_FIREBASE_API_KEY=sizin_api_key
 VITE_FIREBASE_AUTH_DOMAIN=sizin_auth_domain
 VITE_FIREBASE_PROJECT_ID=sizin_project_id
-VITE_FIREBASE_STORAGE_BUCKET=sizin_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=sizin_sender_id
 VITE_FIREBASE_APP_ID=sizin_app_id
 ```
 
@@ -121,7 +119,8 @@ ekinchi/
 │   └── main.jsx         # Tətbiqin giriş nöqtəsi və ErrorBoundary
 ├── index.html           # SEO optimizasiyalı əsas HTML faylı
 ├── tailwind.config.js   # Tailwind fərdiləşdirmələri
-└── package.json         # Asılılıqlar
+├── package.json         # Asılılıqlar
+└── .env                 # API keys and private variables
 ```
 
 ---
